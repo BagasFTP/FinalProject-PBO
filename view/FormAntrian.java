@@ -6,11 +6,12 @@ import model.Pasien;
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
+
 /**
  *
  * @author ASUS
  */
-public class FormAntrian extends JFrame{
+public class FormAntrian extends JFrame {
     JTextField tfIdPasien, tfWaktu;
     JButton btnTambah;
     JTextArea taAntrian;
@@ -39,8 +40,12 @@ public class FormAntrian extends JFrame{
         btnTambah.setBounds(150, 110, 160, 30);
         scroll.setBounds(30, 160, 360, 180);
 
-        add(l1); add(tfIdPasien); add(l2); add(tfWaktu);
-        add(btnTambah); add(scroll);
+        add(l1);
+        add(tfIdPasien);
+        add(l2);
+        add(tfWaktu);
+        add(btnTambah);
+        add(scroll);
 
         btnTambah.addActionListener(e -> tambahAntrian());
 
@@ -70,7 +75,8 @@ public class FormAntrian extends JFrame{
     private void loadAntrian() {
         taAntrian.setText("");
         File file = new File("data/antrian.csv");
-        if (!file.exists()) return;
+        if (!file.exists())
+            return;
 
         try (BufferedReader r = new BufferedReader(new FileReader(file))) {
             String line;
@@ -91,9 +97,11 @@ public class FormAntrian extends JFrame{
             String line;
             while ((line = r.readLine()) != null) {
                 String[] data = line.split(",");
-                if (data[0].equals(id)) return data[1];
+                if (data[0].equals(id))
+                    return data[1];
             }
-        } catch (IOException e) {}
+        } catch (IOException e) {
+        }
         return "(Nama tidak ditemukan)";
     }
 }

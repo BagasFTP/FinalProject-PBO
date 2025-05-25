@@ -5,54 +5,87 @@ import java.io.*;
 import model.Pasien;
 
 public class FormRegistrasi extends JFrame {
-    JTextField tfId, tfNama, tfTgl, tfAlamat, tfHp;
-    JButton btnSimpan;
-    Runnable onSuksesRegistrasi;
+    private JTextField tfId, tfNama, tfTgl, tfAlamat, tfHp;
+    private JButton btnSimpan;
+    private final Runnable onSuksesRegistrasi;
 
     public FormRegistrasi(Runnable onSuksesRegistrasi) {
         this.onSuksesRegistrasi = onSuksesRegistrasi;
 
         setTitle("Registrasi Pasien");
-        setLayout(null);
         setSize(400, 300);
+        setLayout(null);
+        setLocationRelativeTo(null); // Tengah layar
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        tfId = new JTextField(); tfNama = new JTextField(); tfTgl = new JTextField();
-        tfAlamat = new JTextField(); tfHp = new JTextField(); btnSimpan = new JButton("Simpan");
+        inisialisasiForm();
+        setVisible(true);
+    }
 
+    private void inisialisasiForm() {
         JLabel[] labels = {
-            new JLabel("ID Pasien"), new JLabel("Nama"), new JLabel("Tanggal Lahir"),
-            new JLabel("Alamat"), new JLabel("No. HP")
+                new JLabel("ID Pasien"), new JLabel("Nama"),
+                new JLabel("Tanggal Lahir"), new JLabel("Alamat"), new JLabel("No. HP")
         };
-        JTextField[] fields = {tfId, tfNama, tfTgl, tfAlamat, tfHp};
+
+        tfId = new JTextField();
+        tfNama = new JTextField();
+        tfTgl = new JTextField();
+        tfAlamat = new JTextField();
+        tfHp = new JTextField();
+        btnSimpan = new JButton("Simpan");
+
+        JTextField[] fields = { tfId, tfNama, tfTgl, tfAlamat, tfHp };
 
         for (int i = 0; i < labels.length; i++) {
             labels[i].setBounds(30, 30 + i * 30, 100, 25);
             fields[i].setBounds(150, 30 + i * 30, 200, 25);
-            add(labels[i]); add(fields[i]);
+            add(labels[i]);
+            add(fields[i]);
         }
 
         btnSimpan.setBounds(150, 200, 100, 30);
-        add(btnSimpan);
-
         btnSimpan.addActionListener(e -> simpanPasien());
-
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setVisible(true);
+        add(btnSimpan);
     }
 
     private void simpanPasien() {
+        // Validasi input
+        if (tfId.getText().isEmpty() || tfNama.getText().isEmpty() || tfTgl.getText().isEmpty()
+                || tfAlamat.getText().isEmpty() || tfHp.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Validasi Gagal",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         Pasien p = new Pasien(
-            tfId.getText(), tfNama.getText(), tfTgl.getText(),
-            tfAlamat.getText(), tfHp.getText()
-        );
-        try (BufferedWriter w = new BufferedWriter(new FileWriter("data/pasien.csv", true))) {
-            w.write(p.toCSV());
-            w.newLine();
-            JOptionPane.showMessageDialog(this, "Pasien disimpan.");
-            dispose(); // Tutup form
-            if (onSuksesRegistrasi != null) onSuksesRegistrasi.run(); // Aktifkan tombol di MainApp
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Gagal simpan!");
+                tfId.getText().trim(),
+                tfNama.getText().trim(),
+                tfTgl.getText().trim(),
+                tfAlamat.getText().trim(),
+                tfHp.getText().trim());
+
+        try {
+            File folder = new File("data");
+            if (!folder.exists())
+                folder.mkdirs();
+
+            try (BufferedWriter w = new BufferedWriter(new FileWriter("data/pasien.csv", true))) {
+                w.write(p.toCSV());
+                w.newLine();
+            }
+
+            JOptionPane.showMessageDialog(this, "Data pasien berhasil disimpan.");
+            dispose();
+
+            if (onSuksesRegistrasi != null) {
+                onSuksesRegistrasi.run(); // Aktifkan tombol lain di MainApp
+            }
+
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat menyimpan data:\n" + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace(); // Debug di konsol
         }
     }
 }

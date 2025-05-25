@@ -1,9 +1,5 @@
 package model;
 
-/**
- *
- * @author ASUS
- */
 public class Pasien {
     private String id, nama, tglLahir, alamat, noHp;
 
@@ -16,15 +12,6 @@ public class Pasien {
     }
 
     public String toCSV() {
-        return id + "," + nama + "," + tglLahir + "," + alamat + "," + noHp;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getNama() {
-        return nama;
+        return String.join(",", id, nama, tglLahir, alamat, noHp);
     }
 }
-
