@@ -3,6 +3,8 @@ package view;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.net.URL;
 
 import view.FormRegistrasi;
 import view.FormAntrian;
@@ -48,8 +50,6 @@ public class MainApp extends JFrame {
             btn.addActionListener(e -> bukaForm(index));
             tombolFitur[i] = btn;
 
-            // Semua tombol aktif dari awal
-
             panelKiri.add(btn);
         }
 
@@ -59,29 +59,128 @@ public class MainApp extends JFrame {
         panelTengah.setBackground(new Color(245, 245, 245));
         add(panelTengah, BorderLayout.CENTER);
 
-        // Handle image loading dengan error handling
+        // Handle image loading dengan multiple fallback options
+        loadBackgroundImage(panelTengah);
+
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setVisible(true);
+    }
+
+    private void loadBackgroundImage(JPanel panelTengah) {
+        ImageIcon imageIcon = null;
+        boolean imageLoaded = false;
+
+        // Debug info
+        System.out.println("Working Directory: " + System.getProperty("user.dir"));
+
+        // Attempt 1: Direct relative path from working directory
         try {
-            ImageIcon imageIcon = new ImageIcon("img/background.png");
-            if (imageIcon.getIconWidth() > 0) {
-                JLabel labelImage = new JLabel(imageIcon);
-                panelTengah.add(labelImage);
-            } else {
-                // Jika gambar tidak ditemukan, tampilkan text
-                JLabel labelText = new JLabel("SISTEM INFORMASI KLINIK", JLabel.CENTER);
-                labelText.setFont(new Font("Arial", Font.BOLD, 24));
-                labelText.setForeground(new Color(70, 130, 180));
-                panelTengah.add(labelText);
+            File imageFile = new File("img/background.png");
+            System.out.println("Checking path: " + imageFile.getAbsolutePath());
+            System.out.println("File exists: " + imageFile.exists());
+            
+            if (imageFile.exists()) {
+                imageIcon = new ImageIcon("img/background.png");
+                if (imageIcon.getIconWidth() > 0) {
+                    imageLoaded = true;
+                    System.out.println("Image loaded with relative path: img/background.png");
+                }
             }
         } catch (Exception e) {
-            // Jika error loading gambar, tampilkan text
+            System.out.println("Failed to load with relative path: " + e.getMessage());
+        }
+
+        // Attempt 2: Try with absolute path construction
+        if (!imageLoaded) {
+            try {
+                String absolutePath = System.getProperty("user.dir") + File.separator + "img" + File.separator + "background.png";
+                File imageFile = new File(absolutePath);
+                System.out.println("Trying absolute path: " + absolutePath);
+                
+                if (imageFile.exists()) {
+                    imageIcon = new ImageIcon(absolutePath);
+                    if (imageIcon.getIconWidth() > 0) {
+                        imageLoaded = true;
+                        System.out.println("Image loaded with absolute path");
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Failed to load with absolute path: " + e.getMessage());
+            }
+        }
+
+        // Attempt 3: Try different relative paths
+        if (!imageLoaded) {
+            String[] possiblePaths = {
+                "./img/background.png",
+                "../img/background.png",
+                "../../img/background.png",
+                "src/img/background.png",
+                "resources/img/background.png"
+            };
+
+            for (String path : possiblePaths) {
+                try {
+                    File imageFile = new File(path);
+                    if (imageFile.exists()) {
+                        imageIcon = new ImageIcon(path);
+                        if (imageIcon.getIconWidth() > 0) {
+                            imageLoaded = true;
+                            System.out.println("Image loaded with path: " + path);
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    // Continue to next path
+                }
+            }
+        }
+
+        // Attempt 4: Try loading from resources
+        if (!imageLoaded) {
+            try {
+                URL imageURL = getClass().getResource("/img/background.png");
+                if (imageURL != null) {
+                    imageIcon = new ImageIcon(imageURL);
+                    if (imageIcon.getIconWidth() > 0) {
+                        imageLoaded = true;
+                        System.out.println("Image loaded from resources: /img/background.png");
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Failed to load from resources: " + e.getMessage());
+            }
+        }
+
+        // Attempt 5: Try loading from classpath
+        if (!imageLoaded) {
+            try {
+                URL imageURL = getClass().getClassLoader().getResource("img/background.png");
+                if (imageURL != null) {
+                    imageIcon = new ImageIcon(imageURL);
+                    if (imageIcon.getIconWidth() > 0) {
+                        imageLoaded = true;
+                        System.out.println("Image loaded from classpath: img/background.png");
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Failed to load from classpath: " + e.getMessage());
+            }
+        }
+
+        // Display result
+        if (imageLoaded && imageIcon != null) {
+            JLabel labelImage = new JLabel(imageIcon);
+            panelTengah.add(labelImage);
+            System.out.println("Background image successfully displayed!");
+        } else {
+            // Jika semua cara gagal, tampilkan text
             JLabel labelText = new JLabel("SISTEM INFORMASI KLINIK", JLabel.CENTER);
             labelText.setFont(new Font("Arial", Font.BOLD, 24));
             labelText.setForeground(new Color(70, 130, 180));
             panelTengah.add(labelText);
+            System.out.println("Image not found, displaying text instead");
         }
-
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setVisible(true);
     }
 
     private void bukaForm(int index) {

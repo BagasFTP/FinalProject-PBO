@@ -1,29 +1,34 @@
 package controller;
-import model.Janji;
-import java.io.*;
-import java.util.*;
-/**
- *
- * @author ASUS
- */
+
+import model.JanjiModel;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import javax.swing.JOptionPane;
+import config.koneksi;
+
 public class JanjiController {
-    private static final String FILE_PATH = "data/janji.csv";
 
-    public static void simpanJanji(Janji j) throws IOException {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            bw.write(j.toCSV());
-            bw.newLine();
-        }
-    }
+    public static void simpanJanji(JanjiModel janji) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
 
-    public static List<Janji> getDaftarJanji() throws IOException {
-        List<Janji> daftar = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(FILE_PATH))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                daftar.add(Janji.fromCSV(line));
-            }
+        try {
+            conn = koneksi.getKoneksi(); 
+            String sql = "INSERT INTO janji_temu (id_pasien, tanggal_janji) VALUES (?, ?)";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, janji.getIdPasien());
+
+            // Convert java.util.Date to java.sql.Date
+            java.sql.Date sqlDate = new java.sql.Date(janji.getTanggalJanji().getTime());
+            stmt.setDate(2, sqlDate);
+
+            stmt.executeUpdate();
+
+        } catch (SQLException ex) {
+            throw new SQLException("Gagal menyimpan janji: " + ex.getMessage());
+        } finally {
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
         }
-        return daftar;
     }
 }

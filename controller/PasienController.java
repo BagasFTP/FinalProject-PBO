@@ -1,28 +1,24 @@
 package controller;
-import model.Pasien;
-import java.io.*;
-/**
- *
- * @author ASUS
- */
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import config.koneksi;
+
 public class PasienController {
-     private static final String FILE_PATH = "data/pasien.csv";
-
-    public static void simpanPasien(Pasien p) throws IOException {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            bw.write(p.toCSV());
-            bw.newLine();
-        }
-    }
-
-    public static boolean cekIdPasienExist(String id) throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(FILE_PATH))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-                if (data.length > 0 && data[0].equalsIgnoreCase(id)) return true;
+    public static boolean cekIdPasienExist(String idPasien) {
+        try {
+            Connection conn = koneksi.getKoneksi();
+            String sql = "SELECT COUNT(*) FROM pasien WHERE id_pasien = ?";
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, idPasien);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
-    }   
+    }
 }

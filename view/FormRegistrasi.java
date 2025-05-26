@@ -1,8 +1,9 @@
 package view;
 
 import javax.swing.*;
-import java.io.*;
-import model.Pasien;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import config.koneksi;
 
 public class FormRegistrasi extends JFrame {
     private JTextField tfId, tfNama, tfTgl, tfAlamat, tfHp;
@@ -50,7 +51,6 @@ public class FormRegistrasi extends JFrame {
     }
 
     private void simpanPasien() {
-        // Validasi input
         if (tfId.getText().isEmpty() || tfNama.getText().isEmpty() || tfTgl.getText().isEmpty()
                 || tfAlamat.getText().isEmpty() || tfHp.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Validasi Gagal",
@@ -58,34 +58,29 @@ public class FormRegistrasi extends JFrame {
             return;
         }
 
-        Pasien p = new Pasien(
-                tfId.getText().trim(),
-                tfNama.getText().trim(),
-                tfTgl.getText().trim(),
-                tfAlamat.getText().trim(),
-                tfHp.getText().trim());
-
         try {
-            File folder = new File("data");
-            if (!folder.exists())
-                folder.mkdirs();
+            Connection conn = koneksi.getKoneksi();
+            String sql = "INSERT INTO pasien (id_pasien, nama_pasien, tgl_lahir, alamat, noHP) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, tfId.getText().trim());
+            pst.setString(2, tfNama.getText().trim());
+            pst.setString(3, tfTgl.getText().trim());
+            pst.setString(4, tfAlamat.getText().trim());
+            pst.setString(5, tfHp.getText().trim());
 
-            try (BufferedWriter w = new BufferedWriter(new FileWriter("data/pasien.csv", true))) {
-                w.write(p.toCSV());
-                w.newLine();
-            }
+            pst.executeUpdate();
 
-            JOptionPane.showMessageDialog(this, "Data pasien berhasil disimpan.");
+            JOptionPane.showMessageDialog(this, "Data pasien berhasil disimpan ke database.");
             dispose();
 
             if (onSuksesRegistrasi != null) {
-                onSuksesRegistrasi.run(); // Aktifkan tombol lain di MainApp
+                onSuksesRegistrasi.run();
             }
 
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat menyimpan data:\n" + ex.getMessage(),
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Gagal menyimpan data ke database:\n" + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace(); // Debug di konsol
+            ex.printStackTrace();
         }
     }
 }
