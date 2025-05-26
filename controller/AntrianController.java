@@ -6,7 +6,7 @@ import java.util.*;
  * @author ASUS
  */
 public class AntrianController {
-    private static final String FILE_PATH = "data/antrian.txt";
+    private static final String FILE_PATH = "data/antrian.csv";
 
     public static void tambahAntrian(String idPasien) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, true))) {

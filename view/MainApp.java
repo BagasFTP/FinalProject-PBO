@@ -48,7 +48,7 @@ public class MainApp extends JFrame {
             btn.addActionListener(e -> bukaForm(index));
             tombolFitur[i] = btn;
 
-            if (i != 0) btn.setEnabled(false);
+            // Semua tombol aktif dari awal
 
             panelKiri.add(btn);
         }
@@ -59,35 +59,134 @@ public class MainApp extends JFrame {
         panelTengah.setBackground(new Color(245, 245, 245));
         add(panelTengah, BorderLayout.CENTER);
 
-        ImageIcon imageIcon = new ImageIcon("img/background.png");
-        JLabel labelImage = new JLabel(imageIcon);
-        panelTengah.add(labelImage);
+        // Handle image loading dengan error handling
+        try {
+            ImageIcon imageIcon = new ImageIcon("img/background.png");
+            if (imageIcon.getIconWidth() > 0) {
+                JLabel labelImage = new JLabel(imageIcon);
+                panelTengah.add(labelImage);
+            } else {
+                // Jika gambar tidak ditemukan, tampilkan text
+                JLabel labelText = new JLabel("SISTEM INFORMASI KLINIK", JLabel.CENTER);
+                labelText.setFont(new Font("Arial", Font.BOLD, 24));
+                labelText.setForeground(new Color(70, 130, 180));
+                panelTengah.add(labelText);
+            }
+        } catch (Exception e) {
+            // Jika error loading gambar, tampilkan text
+            JLabel labelText = new JLabel("SISTEM INFORMASI KLINIK", JLabel.CENTER);
+            labelText.setFont(new Font("Arial", Font.BOLD, 24));
+            labelText.setForeground(new Color(70, 130, 180));
+            panelTengah.add(labelText);
+        }
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
     }
 
     private void bukaForm(int index) {
-        switch (index) {
-            case 0 -> {
-                new FormRegistrasi(() -> {
-                    for (int i = 1; i < tombolFitur.length; i++) {
-                        tombolFitur[i].setEnabled(true);
+        try {
+            switch (index) {
+                case 0 -> {
+                    // FormRegistrasi memerlukan parameter Runnable
+                    new FormRegistrasi(() -> {
+                        // Callback setelah registrasi berhasil
+                        // Bisa ditambahkan logic tambahan jika diperlukan
+                        System.out.println("Registrasi pasien berhasil!");
+                    });
+                }
+                case 1 -> {
+                    try {
+                        new FormAntrian();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Form Antrian belum tersedia atau ada error: " + ex.getMessage(), 
+                            "Info", 
+                            JOptionPane.INFORMATION_MESSAGE);
                     }
-                });
+                }
+                case 2 -> {
+                    try {
+                        new FormBuatJanji();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Form Buat Janji belum tersedia atau ada error: " + ex.getMessage(), 
+                            "Info", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                case 3 -> {
+                    try {
+                        new FormEditJanji();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Form Edit Janji belum tersedia atau ada error: " + ex.getMessage(), 
+                            "Info", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                case 4 -> {
+                    try {
+                        new FormReminder();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Form Reminder belum tersedia atau ada error: " + ex.getMessage(), 
+                            "Info", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                case 5 -> {
+                    try {
+                        new FormStatistik();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Form Statistik belum tersedia atau ada error: " + ex.getMessage(), 
+                            "Info", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                case 6 -> {
+                    try {
+                        new FormExportCSV();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Form Export CSV belum tersedia atau ada error: " + ex.getMessage(), 
+                            "Info", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                case 7 -> {
+                    try {
+                        new FormCekTanggal();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Form Cek Tanggal belum tersedia atau ada error: " + ex.getMessage(), 
+                            "Info", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                case 8 -> {
+                    try {
+                        new FormRekamMedis();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Form Rekam Medis belum tersedia atau ada error: " + ex.getMessage(), 
+                            "Info", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                default -> JOptionPane.showMessageDialog(this, "Fitur belum tersedia!");
             }
-            case 1 -> new FormAntrian();
-            case 2 -> new FormBuatJanji();
-            case 3 -> new FormEditJanji();
-            case 4 -> new FormReminder();
-            case 5 -> new FormStatistik();
-            case 6 -> new FormExportCSV();
-            case 7 -> new FormCekTanggal();
-            case 8 -> new FormRekamMedis();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Error membuka form: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
-        new MainApp();
+        SwingUtilities.invokeLater(() -> new MainApp());
     }
 }

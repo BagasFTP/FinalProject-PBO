@@ -1,107 +1,161 @@
 package view;
 
-import model.AntrianPasien;
-import model.Pasien;
-
 import javax.swing.*;
-import java.io.*;
-import java.util.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.IOException;
+import java.util.List;
+import controller.AntrianController;
+import controller.PasienController;
 
-/**
- *
- * @author ASUS
- */
 public class FormAntrian extends JFrame {
-    JTextField tfIdPasien, tfWaktu;
-    JButton btnTambah;
-    JTextArea taAntrian;
+    private JTextField tfIdPasien;
+    private JButton btnTambahAntrian, btnRefresh;
+    private JTextArea taAntrian;
+    private JScrollPane scrollPane;
 
     public FormAntrian() {
         setTitle("Sistem Antrian Pasien");
-        setLayout(null);
-        setSize(450, 400);
+        setSize(500, 400);
         setLocationRelativeTo(null);
-
-        JLabel l1 = new JLabel("ID Pasien:");
-        JLabel l2 = new JLabel("Waktu Datang:");
-
-        tfIdPasien = new JTextField();
-        tfWaktu = new JTextField(); // bisa diisi manual atau pakai timestamp otomatis
-        btnTambah = new JButton("Tambah ke Antrian");
-        taAntrian = new JTextArea();
-        taAntrian.setEditable(false);
-
-        JScrollPane scroll = new JScrollPane(taAntrian);
-
-        l1.setBounds(30, 30, 100, 25);
-        tfIdPasien.setBounds(150, 30, 200, 25);
-        l2.setBounds(30, 70, 100, 25);
-        tfWaktu.setBounds(150, 70, 200, 25);
-        btnTambah.setBounds(150, 110, 160, 30);
-        scroll.setBounds(30, 160, 360, 180);
-
-        add(l1);
-        add(tfIdPasien);
-        add(l2);
-        add(tfWaktu);
-        add(btnTambah);
-        add(scroll);
-
-        btnTambah.addActionListener(e -> tambahAntrian());
-
-        loadAntrian();
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        
+        inisialisasiForm();
+        refreshAntrian();
         setVisible(true);
     }
 
+    private void inisialisasiForm() {
+        setLayout(new BorderLayout(10, 10));
+
+        // Panel Input
+        JPanel panelInput = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelInput.setBorder(BorderFactory.createTitledBorder("Tambah Antrian"));
+        
+        JLabel lblId = new JLabel("ID Pasien:");
+        tfIdPasien = new JTextField(15);
+        btnTambahAntrian = new JButton("Tambah ke Antrian");
+        btnRefresh = new JButton("Refresh");
+
+        panelInput.add(lblId);
+        panelInput.add(tfIdPasien);
+        panelInput.add(btnTambahAntrian);
+        panelInput.add(btnRefresh);
+
+        // Panel Daftar Antrian
+        JPanel panelAntrian = new JPanel(new BorderLayout());
+        panelAntrian.setBorder(BorderFactory.createTitledBorder("Daftar Antrian"));
+        
+        taAntrian = new JTextArea(15, 40);
+        taAntrian.setEditable(false);
+        taAntrian.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        scrollPane = new JScrollPane(taAntrian);
+        
+        panelAntrian.add(scrollPane, BorderLayout.CENTER);
+
+        // Panel Info
+        JPanel panelInfo = new JPanel();
+        JLabel lblInfo = new JLabel("Masukkan ID Pasien untuk menambahkan ke antrian");
+        lblInfo.setFont(new Font("Arial", Font.ITALIC, 11));
+        panelInfo.add(lblInfo);
+
+        // Tambahkan ke frame
+        add(panelInput, BorderLayout.NORTH);
+        add(panelAntrian, BorderLayout.CENTER);
+        add(panelInfo, BorderLayout.SOUTH);
+
+        // Event listeners
+        btnTambahAntrian.addActionListener(e -> tambahAntrian());
+        btnRefresh.addActionListener(e -> refreshAntrian());
+        
+        // Enter key pada text field
+        tfIdPasien.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    tambahAntrian();
+                }
+            }
+        });
+    }
+
     private void tambahAntrian() {
-        String id = tfIdPasien.getText().trim();
-        String waktu = tfWaktu.getText().trim();
-        AntrianPasien ap = new AntrianPasien(id, waktu);
-
-        File file = new File("data/antrian.csv");
-        file.getParentFile().mkdirs();
-
-        try (BufferedWriter w = new BufferedWriter(new FileWriter(file, true))) {
-            w.write(ap.toCSV());
-            w.newLine();
-            JOptionPane.showMessageDialog(this, "Ditambahkan ke antrian.");
-            loadAntrian();
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Gagal menambahkan.");
-        }
-    }
-
-    private void loadAntrian() {
-        taAntrian.setText("");
-        File file = new File("data/antrian.csv");
-        if (!file.exists())
+        String idPasien = tfIdPasien.getText().trim();
+        
+        if (idPasien.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "ID Pasien tidak boleh kosong!", 
+                "Validasi", 
+                JOptionPane.WARNING_MESSAGE);
             return;
+        }
 
-        try (BufferedReader r = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = r.readLine()) != null) {
-                String[] data = line.split(",");
-                String id = data[0];
-                String waktu = data[1];
-                String nama = getNamaPasienById(id);
-                taAntrian.append("[" + waktu + "] " + id + " - " + nama + "\n");
+        try {
+            // Cek apakah ID pasien exist
+            if (!PasienController.cekIdPasienExist(idPasien)) {
+                int pilihan = JOptionPane.showConfirmDialog(this,
+                    "ID Pasien '" + idPasien + "' tidak ditemukan dalam database.\n" +
+                    "Apakah Anda yakin ingin menambahkan ke antrian?",
+                    "Konfirmasi",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+                
+                if (pilihan != JOptionPane.YES_OPTION) {
+                    return;
+                }
             }
-        } catch (IOException e) {
-            taAntrian.setText("Gagal load antrian.");
+
+            // Tambah ke antrian
+            AntrianController.tambahAntrian(idPasien);
+            
+            JOptionPane.showMessageDialog(this, 
+                "Pasien dengan ID '" + idPasien + "' berhasil ditambahkan ke antrian!", 
+                "Sukses", 
+                JOptionPane.INFORMATION_MESSAGE);
+            
+            tfIdPasien.setText("");
+            refreshAntrian();
+            
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, 
+                "Error saat menambah antrian:\n" + ex.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
-    private String getNamaPasienById(String id) {
-        try (BufferedReader r = new BufferedReader(new FileReader("data/pasien.csv"))) {
-            String line;
-            while ((line = r.readLine()) != null) {
-                String[] data = line.split(",");
-                if (data[0].equals(id))
-                    return data[1];
+    private void refreshAntrian() {
+        try {
+            List<String> daftarAntrian = AntrianController.getDaftarAntrian();
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== DAFTAR ANTRIAN PASIEN ===\n\n");
+            
+            if (daftarAntrian.isEmpty()) {
+                sb.append("Tidak ada pasien dalam antrian.\n");
+            } else {
+                sb.append(String.format("%-5s %-15s\n", "No.", "ID Pasien"));
+                sb.append("-------------------------\n");
+                
+                for (int i = 0; i < daftarAntrian.size(); i++) {
+                    sb.append(String.format("%-5d %-15s\n", 
+                        (i + 1), daftarAntrian.get(i)));
+                }
+                
+                sb.append("\nTotal pasien dalam antrian: ").append(daftarAntrian.size());
             }
-        } catch (IOException e) {
+            
+            taAntrian.setText(sb.toString());
+            taAntrian.setCaretPosition(0); // Scroll ke atas
+            
+        } catch (IOException ex) {
+            taAntrian.setText("Error saat memuat daftar antrian:\n" + ex.getMessage());
+            JOptionPane.showMessageDialog(this, 
+                "Error saat memuat antrian:\n" + ex.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
-        return "(Nama tidak ditemukan)";
     }
 }

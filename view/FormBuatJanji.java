@@ -7,7 +7,7 @@ import javax.swing.*;
 public class FormBuatJanji extends JFrame{
     public FormBuatJanji() {
         setTitle("Buat Janji Temu");
-        setSize(400, 300);
+        setSize(700, 400);
         setLayout(null);
 
         JLabel lId = new JLabel("ID Pasien");
