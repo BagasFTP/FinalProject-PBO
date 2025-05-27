@@ -75,15 +75,15 @@ public class MainApp extends JFrame {
 
         // Attempt 1: Direct relative path from working directory
         try {
-            File imageFile = new File("img/background.png");
+            File imageFile = new File("img/background.jpg");
             System.out.println("Checking path: " + imageFile.getAbsolutePath());
             System.out.println("File exists: " + imageFile.exists());
             
             if (imageFile.exists()) {
-                imageIcon = new ImageIcon("img/background.png");
+                imageIcon = new ImageIcon("img/background.jpg");
                 if (imageIcon.getIconWidth() > 0) {
                     imageLoaded = true;
-                    System.out.println("Image loaded with relative path: img/background.png");
+                    System.out.println("Image loaded with relative path: img/background.jpg");
                 }
             }
         } catch (Exception e) {
@@ -112,11 +112,11 @@ public class MainApp extends JFrame {
         // Attempt 3: Try different relative paths
         if (!imageLoaded) {
             String[] possiblePaths = {
-                "./img/background.png",
-                "../img/background.png",
-                "../../img/background.png",
-                "src/img/background.png",
-                "resources/img/background.png"
+                "./img/background.jpg",
+                "../img/background.jpg",
+                "../../img/background.jpg",
+                "src/img/background.jpg",
+                "resources/img/background.jpg"
             };
 
             for (String path : possiblePaths) {
@@ -139,12 +139,12 @@ public class MainApp extends JFrame {
         // Attempt 4: Try loading from resources
         if (!imageLoaded) {
             try {
-                URL imageURL = getClass().getResource("/img/background.png");
+                URL imageURL = getClass().getResource("/img/background.jpg");
                 if (imageURL != null) {
                     imageIcon = new ImageIcon(imageURL);
                     if (imageIcon.getIconWidth() > 0) {
                         imageLoaded = true;
-                        System.out.println("Image loaded from resources: /img/background.png");
+                        System.out.println("Image loaded from resources: /img/background.jpg");
                     }
                 }
             } catch (Exception e) {
@@ -155,12 +155,12 @@ public class MainApp extends JFrame {
         // Attempt 5: Try loading from classpath
         if (!imageLoaded) {
             try {
-                URL imageURL = getClass().getClassLoader().getResource("img/background.png");
+                URL imageURL = getClass().getClassLoader().getResource("img/background.jpg");
                 if (imageURL != null) {
                     imageIcon = new ImageIcon(imageURL);
                     if (imageIcon.getIconWidth() > 0) {
                         imageLoaded = true;
-                        System.out.println("Image loaded from classpath: img/background.png");
+                        System.out.println("Image loaded from classpath: img/background.jpg");
                     }
                 }
             } catch (Exception e) {

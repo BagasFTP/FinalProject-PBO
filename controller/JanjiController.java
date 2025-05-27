@@ -1,31 +1,38 @@
 package controller;
 
-import model.JanjiModel;
-import java.sql.*;
-import java.text.SimpleDateFormat;
-import javax.swing.JOptionPane;
 import config.koneksi;
+import model.JanjiModel;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class JanjiController {
-
-    public static void simpanJanji(JanjiModel janji) throws SQLException {
+    public static void editJanji(JanjiModel janji) throws SQLException {
         Connection conn = null;
         PreparedStatement stmt = null;
-
         try {
-            conn = koneksi.getKoneksi(); 
-            String sql = "INSERT INTO janji_temu (id_pasien, tanggal_janji) VALUES (?, ?)";
+            conn = koneksi.getKoneksi();
+            String sql = "UPDATE janji_temu SET tanggal_janji = ? WHERE id_pasien = ?";
             stmt = conn.prepareStatement(sql);
-            stmt.setString(1, janji.getIdPasien());
-
-            // Convert java.util.Date to java.sql.Date
-            java.sql.Date sqlDate = new java.sql.Date(janji.getTanggalJanji().getTime());
-            stmt.setDate(2, sqlDate);
-
+            stmt.setDate(1, new java.sql.Date(janji.getTanggalJanji().getTime()));
+            stmt.setString(2, janji.getIdPasien());
             stmt.executeUpdate();
+        } finally {
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
+        }
+    }
 
-        } catch (SQLException ex) {
-            throw new SQLException("Gagal menyimpan janji: " + ex.getMessage());
+    public static void hapusJanji(String idPasien) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = koneksi.getKoneksi();
+            String sql = "DELETE FROM janji_temu WHERE id_pasien = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, idPasien);
+            stmt.executeUpdate();
         } finally {
             if (stmt != null) stmt.close();
             if (conn != null) conn.close();
