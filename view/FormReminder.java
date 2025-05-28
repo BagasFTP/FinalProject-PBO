@@ -2,7 +2,7 @@ package view;
 
 import javax.swing.*;
 import java.sql.*;
-import config.koneksi; 
+import config.koneksi;
 
 public class FormReminder extends JFrame {
     public FormReminder() {
@@ -32,13 +32,14 @@ public class FormReminder extends JFrame {
             }
 
             try (Connection conn = koneksi.getKoneksi()) {
+
                 String query = "SELECT tanggal_janji FROM janji_temu WHERE id_pasien = ?";
                 PreparedStatement ps = conn.prepareStatement(query);
                 ps.setString(1, idPasien);
                 ResultSet rs = ps.executeQuery();
 
                 if (rs.next()) {
-                    String tanggalJanji = rs.getString("tanggal");
+                    String tanggalJanji = rs.getString("tanggal_janji"); // ← PERBAIKAN DI SINI
                     JOptionPane.showMessageDialog(this, "Jadwal temu pasien ID " + idPasien + ": " + tanggalJanji);
                 } else {
                     JOptionPane.showMessageDialog(this, "Tidak ada jadwal ditemukan untuk ID Pasien " + idPasien);
