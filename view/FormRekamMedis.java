@@ -41,18 +41,26 @@ public class FormRekamMedis extends JFrame {
         taRiwayat.setEditable(false);
 
         // Layout
-        lblId.setBounds(30, 20, 100, 25); tfId.setBounds(130, 20, 200, 25);
-        lblKeluhan.setBounds(30, 60, 100, 25); tfKeluhan.setBounds(130, 60, 300, 25);
-        lblDiagnosa.setBounds(30, 100, 100, 25); tfDiagnosa.setBounds(130, 100, 300, 25);
+        lblId.setBounds(30, 20, 100, 25);
+        tfId.setBounds(130, 20, 200, 25);
+        lblKeluhan.setBounds(30, 60, 100, 25);
+        tfKeluhan.setBounds(130, 60, 300, 25);
+        lblDiagnosa.setBounds(30, 100, 100, 25);
+        tfDiagnosa.setBounds(130, 100, 300, 25);
         btnSimpan.setBounds(30, 140, 150, 30);
         btnLihat.setBounds(190, 140, 130, 30);
         btnExport.setBounds(330, 140, 150, 30);
         scroll.setBounds(30, 190, 420, 240);
 
-        add(lblId); add(tfId);
-        add(lblKeluhan); add(tfKeluhan);
-        add(lblDiagnosa); add(tfDiagnosa);
-        add(btnSimpan); add(btnLihat); add(btnExport);
+        add(lblId);
+        add(tfId);
+        add(lblKeluhan);
+        add(tfKeluhan);
+        add(lblDiagnosa);
+        add(tfDiagnosa);
+        add(btnSimpan);
+        add(btnLihat);
+        add(btnExport);
         add(scroll);
 
         btnSimpan.addActionListener(e -> simpanRekam());
@@ -108,9 +116,9 @@ public class FormRekamMedis extends JFrame {
 
             while (rs.next()) {
                 hasil.append("Tanggal: ").append(rs.getDate("tanggal")).append("\n")
-                     .append("Keluhan: ").append(rs.getString("keluhan")).append("\n")
-                     .append("Diagnosa: ").append(rs.getString("diagnosa")).append("\n")
-                     .append("------------------------------------------------\n");
+                        .append("Keluhan: ").append(rs.getString("keluhan")).append("\n")
+                        .append("Diagnosa: ").append(rs.getString("diagnosa")).append("\n")
+                        .append("------------------------------------------------\n");
             }
 
             if (hasil.length() == 0) {
