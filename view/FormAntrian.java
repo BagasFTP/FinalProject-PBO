@@ -78,24 +78,24 @@ public class FormAntrian extends JFrame {
     }
 
     private void selesaikanAntrian() {
-        String idJanji = JOptionPane.showInputDialog(this, "Masukkan ID JANJI yang akan diselesaikan:");
-        if (idJanji != null && !idJanji.trim().isEmpty()) {
+        String idPasien = JOptionPane.showInputDialog(this, "Masukkan ID Pasien yang akan diselesaikan:");
+        if (idPasien != null && !idPasien.trim().isEmpty()) {
             try {
                 List<String[]> daftar = AntrianController.getDaftarAntrian();
-                String idPasien = null;
+                String idJanji = null;
                 for (String[] row : daftar) {
-                    if (row[0].equals(idJanji.trim())) {
-                        idPasien = row[1];
+                    if (row[0].equals(idPasien.trim())) {
+                        idJanji = row[1];
                         break;
                     }
                 }
 
-                if (idPasien != null) {
-                    AntrianController.hapusAntrianDanCatat(idJanji.trim(), idPasien);
+                if (idJanji != null) {
+                    AntrianController.hapusAntrianDanCatat(idPasien.trim(), idJanji);
                     JOptionPane.showMessageDialog(this, "Antrian telah diselesaikan dan dicatat.");
                     refreshAntrian();
                 } else {
-                    JOptionPane.showMessageDialog(this, "ID janji tidak ditemukan!");
+                    JOptionPane.showMessageDialog(this, "ID Pasien tidak ditemukan!");
                 }
 
             } catch (Exception ex) {

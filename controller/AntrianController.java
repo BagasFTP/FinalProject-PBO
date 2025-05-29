@@ -51,15 +51,11 @@ public class AntrianController {
         insertStatistik.setString(1, idPasien);
         insertStatistik.executeUpdate();
 
-        // Hapus dari janji_temu
-        PreparedStatement hapus = conn.prepareStatement(
-            "DELETE FROM janji_temu WHERE id_janji = ?"
-        );
-        hapus.setString(1, idJanji);
-        hapus.executeUpdate();
+        PreparedStatement update = conn.prepareStatement("UPDATE janji_temu SET status = 'selesai' WHERE id_janji = ?");
+        update.setString(1, idJanji);
+        update.executeUpdate();
 
         insertStatistik.close();
-        hapus.close();
         conn.close();
     }
 }
