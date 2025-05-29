@@ -97,7 +97,7 @@ public class MainApp extends JFrame {
     private void bukaForm(int index) {
         try {
             switch (index) {
-                case 0 -> new FormRegistrasi(() -> System.out.println("Registrasi pasien berhasil!"));
+                case 0 -> tampilkanDiPanelBaru(new PanelPasien()); // Ganti FormRegistrasi
                 case 1 -> safeOpen(() -> new FormAntrian(), "Form Antrian");
                 case 2 -> safeOpen(() -> new FormBuatJanji(), "Form Buat Janji");
                 case 3 -> safeOpen(() -> new FormEditJanji(), "Form Edit Janji");
@@ -112,6 +112,11 @@ public class MainApp extends JFrame {
             showMessage("Error membuka form: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private Object tampilkanDiPanelBaru(PanelPasien panelPasien) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'tampilkanDiPanelBaru'");
     }
 
     private void safeOpen(Runnable action, String formName) {
