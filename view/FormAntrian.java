@@ -3,77 +3,120 @@ package view;
 import controller.AntrianController;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
 public class FormAntrian extends JFrame {
-    private JTextArea textArea;
+    private JTable tableAntrian;
+    private DefaultTableModel tableModel;
     private JButton btnTambah, btnRefresh, btnSelesai;
 
     public FormAntrian() {
-        setTitle("Form Antrian Pasien");
-        setSize(500, 400);
+        setTitle("Antrian Pasien");
+        setSize(600, 450);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // TextArea untuk menampilkan antrian
-        textArea = new JTextArea();
-        textArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        add(scrollPane, BorderLayout.CENTER);
-
-        // Panel tombol
-        JPanel panelButton = new JPanel();
-        btnTambah = new JButton("Tambah Antrian");
-        btnRefresh = new JButton("Refresh");
-        btnSelesai = new JButton("Selesaikan Antrian");
-
-        panelButton.add(btnTambah);
-        panelButton.add(btnRefresh);
-        panelButton.add(btnSelesai);
-
-        add(panelButton, BorderLayout.SOUTH);
-
-        // Action Button Tambah
-        btnTambah.addActionListener(e -> {
-            String idPasien = JOptionPane.showInputDialog(this, "Masukkan ID Pasien:");
-            if (idPasien != null && !idPasien.trim().isEmpty()) {
-                try {
-                    AntrianController.tambahAntrian(idPasien.trim());
-                    JOptionPane.showMessageDialog(this, "Antrian ditambahkan.");
-                    refreshAntrian();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this, "Gagal menambahkan antrian: " + ex.getMessage());
-                }
-            }
-        });
-
-        // Action Button Refresh
-        btnRefresh.addActionListener(e -> refreshAntrian());
-
-        // Action Button Selesaikan Antrian
-        btnSelesai.addActionListener(e -> selesaikanAntrian());
+        add(buatHeader(), BorderLayout.NORTH);
+        add(buatKonten(), BorderLayout.CENTER);
+        add(buatPanelTombol(), BorderLayout.SOUTH);
 
         refreshAntrian();
         setVisible(true);
     }
 
+    private JPanel buatHeader() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(45, 85, 125));
+        header.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        JLabel lblJudul = new JLabel("DAFTAR ANTRIAN PASIEN");
+        lblJudul.setFont(new Font("SansSerif", Font.BOLD, 20));
+        lblJudul.setForeground(Color.WHITE);
+
+        header.add(lblJudul, BorderLayout.WEST);
+        return header;
+    }
+
+    private JScrollPane buatKonten() {
+        String[] kolom = { "No", "ID Janji", "ID Pasien", "Tanggal Antrian" };
+        tableModel = new DefaultTableModel(kolom, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // semua sel tidak bisa diedit
+            }
+        };
+
+        tableAntrian = new JTable(tableModel);
+        tableAntrian.setRowHeight(24);
+        tableAntrian.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tableAntrian.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        JScrollPane scrollPane = new JScrollPane(tableAntrian);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Data Antrian"));
+        return scrollPane;
+    }
+
+    private JPanel buatPanelTombol() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        btnTambah = new JButton("Tambah Antrian");
+        btnRefresh = new JButton("Refresh");
+        btnSelesai = new JButton("Selesaikan Antrian");
+
+        btnTambah.setBackground(new Color(45, 85, 125));
+        btnTambah.setForeground(Color.WHITE);
+        btnRefresh.setBackground(new Color(180, 180, 180));
+        btnSelesai.setBackground(new Color(200, 70, 70));
+        btnSelesai.setForeground(Color.WHITE);
+
+        btnTambah.setFocusPainted(false);
+        btnRefresh.setFocusPainted(false);
+        btnSelesai.setFocusPainted(false);
+
+        panel.add(btnTambah);
+        panel.add(btnRefresh);
+        panel.add(btnSelesai);
+
+        // Action
+        btnTambah.addActionListener(e -> tambahAntrian());
+        btnRefresh.addActionListener(e -> refreshAntrian());
+        btnSelesai.addActionListener(e -> selesaikanAntrian());
+
+        return panel;
+    }
+
+    private void tambahAntrian() {
+        String idPasien = JOptionPane.showInputDialog(this, "Masukkan ID Pasien:");
+        if (idPasien != null && !idPasien.trim().isEmpty()) {
+            try {
+                AntrianController.tambahAntrian(idPasien.trim());
+                JOptionPane.showMessageDialog(this, "Antrian ditambahkan.");
+                refreshAntrian();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Gagal menambahkan antrian: " + ex.getMessage());
+            }
+        }
+    }
+
     private void refreshAntrian() {
+        tableModel.setRowCount(0);
         try {
             List<String[]> daftar = AntrianController.getDaftarAntrian();
-            StringBuilder sb = new StringBuilder();
-            sb.append(String.format("%-5s %-10s %-15s\n", "No.", "ID Pasien", "Tanggal Antrian"));
-            sb.append("=====================================\n");
             for (int i = 0; i < daftar.size(); i++) {
-                String[] data = daftar.get(i); // [id_janji, id_pasien, tanggal_janji]
-                sb.append(String.format("%-5d %-10s %-15s\n", i + 1, data[1], data[2]));
+                String[] row = daftar.get(i); // [id_janji, id_pasien, tanggal_janji]
+                tableModel.addRow(new Object[] {
+                        i + 1, row[0], row[1], row[2]
+                });
             }
-            textArea.setText(sb.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            textArea.setText("Gagal memuat data antrian.");
+            JOptionPane.showMessageDialog(this, "Gagal memuat data antrian.");
         }
     }
 
