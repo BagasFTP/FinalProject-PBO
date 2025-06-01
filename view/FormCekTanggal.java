@@ -67,14 +67,8 @@ public class FormCekTanggal extends JFrame {
             new Font("Segoe UI", Font.BOLD, 14),
             Color.DARK_GRAY));
         add(scrollPane, BorderLayout.SOUTH);
-        
-        // Adjust layout for input panel and result area
-        // Set the size of the input panel explicitly or use another layout manager for it.
-        // For simplicity, let's keep it as is, but consider a BorderLayout.NORTH for inputPanel
-        // and BorderLayout.CENTER for scrollPane if you want to fill the remaining space.
-        // For now, let's just make the South panel (scrollPane) take more space.
-        scrollPane.setPreferredSize(new Dimension(getWidth(), 250));
 
+        scrollPane.setPreferredSize(new Dimension(getWidth(), 250));
 
         btnCari.addActionListener(e -> cariDataTanggal());
 
@@ -123,9 +117,9 @@ public class FormCekTanggal extends JFrame {
         // 2. Check for patient visits (statistik_kunjungan)
         try (Connection conn = koneksi.getKoneksi();
              PreparedStatement psKunjungan = conn.prepareStatement(
-                "SELECT p.id_pasien, p.nama_pasien, sk.jenis_kunjungan, sk.status_pembayaran " +
+                "SELECT sk.id_pasien, p.nama_pasien, sk.jenis_kunjungan " + // Tambahkan spasi di akhir dan gunakan alias 'p'
                 "FROM statistik_kunjungan sk " +
-                "JOIN pasien p ON sk.id_pasien = p.id_pasien " +
+                "JOIN pasien p ON sk.id_pasien = p.id_pasien " + // Gunakan alias 'p' di sini
                 "WHERE sk.tanggal_kunjungan = ?"
              )) {
             psKunjungan.setString(1, tanggalCari);
@@ -138,9 +132,8 @@ public class FormCekTanggal extends JFrame {
                     String id = rsKunjungan.getString("id_pasien");
                     String nama = rsKunjungan.getString("nama_pasien");
                     String jenisKunjungan = rsKunjungan.getString("jenis_kunjungan");
-                    String statusPembayaran = rsKunjungan.getString("status_pembayaran");
-                    hasil.append(String.format("Pasien ID: %s, Nama: %s, Jenis Kunjungan: %s, Pembayaran: %s\n",
-                            id, nama, jenisKunjungan, statusPembayaran));
+                    hasil.append(String.format("Pasien ID: %s, Nama: %s, Jenis Kunjungan: %s\n",
+                            id, nama, jenisKunjungan));
                 }
             }
         } catch (SQLException ex) {
