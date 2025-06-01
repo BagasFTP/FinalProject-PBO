@@ -96,8 +96,17 @@ public class MainApp extends JFrame {
 
     private void bukaForm(int index) {
         try {
+            // Clear previous content in panelTengah
+            panelTengah.removeAll();
+            panelTengah.setLayout(new BorderLayout()); // Set layout to BorderLayout for PanelPasien
+    
             switch (index) {
-                case 0 -> tampilkanDiPanelBaru(new PanelPasien()); // Ganti FormRegistrasi
+                case 0 -> {
+                    PanelPasien panelPasien = new PanelPasien();
+                    panelTengah.add(panelPasien, BorderLayout.CENTER);
+                    panelTengah.revalidate();
+                    panelTengah.repaint();
+                }
                 case 1 -> safeOpen(() -> new FormAntrian(), "Form Antrian");
                 case 2 -> safeOpen(() -> new FormBuatJanji(), "Form Buat Janji");
                 case 3 -> safeOpen(() -> new FormEditJanji(), "Form Edit Janji");
@@ -113,6 +122,12 @@ public class MainApp extends JFrame {
             e.printStackTrace();
         }
     }
+    
+    // Remove the unimplemented method:
+    // private Object tampilkanDiPanelBaru(PanelPasien panelPasien) {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'tampilkanDiPanelBaru'");
+    // }
 
     private Object tampilkanDiPanelBaru(PanelPasien panelPasien) {
         // TODO Auto-generated method stub

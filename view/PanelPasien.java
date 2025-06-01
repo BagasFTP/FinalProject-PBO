@@ -11,8 +11,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class PanelPasien extends JPanel {
-    private JTextField tfId, tfNama, tfAlamat, tfHp;
+    private JTextField tfId, tfNama, tfAlamat, tfNoTelepon; // Changed tfHp to tfNoTelepon
     private JSpinner spinnerTgl;
+    private JComboBox<String> cbJenisKelamin; // Added for jenis_kelamin
     private JTable tablePasien;
     private DefaultTableModel tableModel;
 
@@ -60,70 +61,72 @@ public class PanelPasien extends JPanel {
                 TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 14),
                 Color.DARK_GRAY));
-
+    
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 12, 8, 12);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-
+    
         tfId = new JTextField(15);
         tfNama = new JTextField(15);
         tfAlamat = new JTextField(15);
-        tfHp = new JTextField(15);
+        tfNoTelepon = new JTextField(15); // Changed to tfNoTelepon
         spinnerTgl = new JSpinner(new SpinnerDateModel());
         spinnerTgl.setEditor(new JSpinner.DateEditor(spinnerTgl, "yyyy-MM-dd"));
-
-        String[] labelList = { "ID Pasien", "Nama", "Tanggal Lahir", "Alamat", "No. HP" };
-        Component[] fieldList = { tfId, tfNama, spinnerTgl, tfAlamat, tfHp };
-
+    
+        String[] jenisKelaminOptions = {"L", "P"}; // Options for JComboBox
+        cbJenisKelamin = new JComboBox<>(jenisKelaminOptions); // Initialize JComboBox
+    
+        String[] labelList = { "ID Pasien", "Nama", "Tanggal Lahir", "Alamat", "No. Telepon", "Jenis Kelamin" }; // Added Jenis Kelamin
+        Component[] fieldList = { tfId, tfNama, spinnerTgl, tfAlamat, tfNoTelepon, cbJenisKelamin }; // Added cbJenisKelamin
+    
         for (int i = 0; i < labelList.length; i++) {
             gbc.gridx = 0;
             gbc.gridy = i;
             panel.add(new JLabel(labelList[i]), gbc);
-
+    
             gbc.gridx = 1;
             panel.add(fieldList[i], gbc);
         }
-
+    
         JButton btnSimpan = new JButton("Simpan");
         JButton btnReset = new JButton("Reset");
-
+    
         btnSimpan.setBackground(new Color(52, 152, 219));
         btnSimpan.setForeground(Color.WHITE);
         btnReset.setBackground(new Color(189, 195, 199));
         btnReset.setForeground(Color.BLACK);
-
+    
         btnSimpan.setFocusPainted(false);
         btnReset.setFocusPainted(false);
         btnSimpan.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnReset.setFont(new Font("Segoe UI", Font.BOLD, 13));
-
+    
         btnSimpan.addActionListener(e -> simpanPasien());
         btnReset.addActionListener(e -> resetForm());
-
+    
         JPanel panelButton = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelButton.setBackground(new Color(245, 245, 245));
         panelButton.add(btnSimpan);
         panelButton.add(btnReset);
-
+    
         gbc.gridx = 0;
         gbc.gridy = labelList.length;
         gbc.gridwidth = 2;
         panel.add(panelButton, gbc);
-
+    
         return panel;
     }
-
     private JScrollPane buatTabelPasien() {
         tableModel = new DefaultTableModel(new String[] {
-                "ID", "Nama", "Tanggal Lahir", "Alamat", "No. HP"
+                "ID", "Nama", "Tanggal Lahir", "Alamat", "No. Telepon", "Jenis Kelamin" // Added Jenis Kelamin
         }, 0);
         tablePasien = new JTable(tableModel);
         tablePasien.setRowHeight(24);
         tablePasien.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         tablePasien.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
         tablePasien.setGridColor(Color.LIGHT_GRAY);
-
+    
         JScrollPane scrollPane = new JScrollPane(tablePasien);
         scrollPane.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200)),
@@ -134,32 +137,34 @@ public class PanelPasien extends JPanel {
                 Color.DARK_GRAY));
         return scrollPane;
     }
-
+    
     private void simpanPasien() {
         try {
             String id = tfId.getText().trim();
             String nama = tfNama.getText().trim();
             Date tgl = (Date) spinnerTgl.getValue();
             String alamat = tfAlamat.getText().trim();
-            String hp = tfHp.getText().trim();
-
-            if (id.isEmpty() || nama.isEmpty() || alamat.isEmpty() || hp.isEmpty()) {
+            String noTelepon = tfNoTelepon.getText().trim(); // Changed to noTelepon
+            String jenisKelamin = (String) cbJenisKelamin.getSelectedItem(); // Get selected jenis_kelamin
+    
+            if (id.isEmpty() || nama.isEmpty() || alamat.isEmpty() || noTelepon.isEmpty()) { // Check noTelepon
                 JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Peringatan",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
+    
             String tglFormatted = new SimpleDateFormat("yyyy-MM-dd").format(tgl);
             Connection conn = koneksi.getKoneksi();
-            String sql = "INSERT INTO pasien (id_pasien, nama_pasien, tgl_lahir, alamat, noHP) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO pasien (id_pasien, nama_pasien, tanggal_lahir, alamat, no_telepon, jenis_kelamin) VALUES (?, ?, ?, ?, ?, ?)"; // Updated SQL
             PreparedStatement pst = conn.prepareStatement(sql);
             pst.setString(1, id);
             pst.setString(2, nama);
             pst.setString(3, tglFormatted);
             pst.setString(4, alamat);
-            pst.setString(5, hp);
+            pst.setString(5, noTelepon); // Set no_telepon
+            pst.setString(6, jenisKelamin); // Set jenis_kelamin
             pst.executeUpdate();
-
+    
             JOptionPane.showMessageDialog(this, "Data berhasil disimpan.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
             resetForm();
             loadDataPasien();
@@ -173,8 +178,9 @@ public class PanelPasien extends JPanel {
         tfId.setText("");
         tfNama.setText("");
         tfAlamat.setText("");
-        tfHp.setText("");
+        tfNoTelepon.setText(""); // Changed to tfNoTelepon
         spinnerTgl.setValue(new Date());
+        cbJenisKelamin.setSelectedIndex(0); // Reset JComboBox
     }
 
     private void loadDataPasien() {
@@ -183,14 +189,15 @@ public class PanelPasien extends JPanel {
             Connection conn = koneksi.getKoneksi();
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM pasien");
-
+    
             while (rs.next()) {
                 Object[] row = {
                         rs.getString("id_pasien"),
                         rs.getString("nama_pasien"),
-                        rs.getString("tgl_lahir"),
+                        rs.getString("tanggal_lahir"),
                         rs.getString("alamat"),
-                        rs.getString("noHP")
+                        rs.getString("no_telepon"), // Changed to no_telepon
+                        rs.getString("jenis_kelamin") // Added jenis_kelamin
                 };
                 tableModel.addRow(row);
             }
