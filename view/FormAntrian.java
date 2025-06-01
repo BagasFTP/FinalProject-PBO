@@ -14,7 +14,7 @@ public class FormAntrian extends JFrame {
 
     public FormAntrian() {
         setTitle("Antrian Pasien");
-        setSize(600, 450);
+        setSize(700, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -41,7 +41,7 @@ public class FormAntrian extends JFrame {
     }
 
     private JScrollPane buatKonten() {
-        String[] kolom = { "No", "ID Janji", "ID Pasien", "Tanggal Antrian" };
+        String[] kolom = { "No", "ID Janji", "ID Pasien", "Nama Pasien", "Tanggal Antrian", "Status" };
         tableModel = new DefaultTableModel(kolom, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -50,9 +50,17 @@ public class FormAntrian extends JFrame {
         };
 
         tableAntrian = new JTable(tableModel);
-        tableAntrian.setRowHeight(24);
-        tableAntrian.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        tableAntrian.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tableAntrian.setRowHeight(25);
+        tableAntrian.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tableAntrian.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        
+        // Set column widths
+        tableAntrian.getColumnModel().getColumn(0).setPreferredWidth(50);  // No
+        tableAntrian.getColumnModel().getColumn(1).setPreferredWidth(80);  // ID Janji
+        tableAntrian.getColumnModel().getColumn(2).setPreferredWidth(80);  // ID Pasien
+        tableAntrian.getColumnModel().getColumn(3).setPreferredWidth(150); // Nama Pasien
+        tableAntrian.getColumnModel().getColumn(4).setPreferredWidth(120); // Tanggal
+        tableAntrian.getColumnModel().getColumn(5).setPreferredWidth(80);  // Status
 
         JScrollPane scrollPane = new JScrollPane(tableAntrian);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Data Antrian"));
@@ -82,7 +90,7 @@ public class FormAntrian extends JFrame {
         panel.add(btnRefresh);
         panel.add(btnSelesai);
 
-        // Action
+        // Action listeners
         btnTambah.addActionListener(e -> tambahAntrian());
         btnRefresh.addActionListener(e -> refreshAntrian());
         btnSelesai.addActionListener(e -> selesaikanAntrian());
@@ -91,15 +99,35 @@ public class FormAntrian extends JFrame {
     }
 
     private void tambahAntrian() {
-        String idPasien = JOptionPane.showInputDialog(this, "Masukkan ID Pasien:");
+        // Dialog untuk input ID Pasien
+        String idPasien = JOptionPane.showInputDialog(this, 
+            "Masukkan ID Pasien:", 
+            "Tambah Antrian", 
+            JOptionPane.QUESTION_MESSAGE);
+            
         if (idPasien != null && !idPasien.trim().isEmpty()) {
             try {
+                // Validasi apakah pasien ada
+                if (!AntrianController.cekPasienAda(idPasien.trim())) {
+                    JOptionPane.showMessageDialog(this, 
+                        "ID Pasien tidak ditemukan di database!", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
                 AntrianController.tambahAntrian(idPasien.trim());
-                JOptionPane.showMessageDialog(this, "Antrian ditambahkan.");
+                JOptionPane.showMessageDialog(this, 
+                    "Antrian berhasil ditambahkan.", 
+                    "Sukses", 
+                    JOptionPane.INFORMATION_MESSAGE);
                 refreshAntrian();
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Gagal menambahkan antrian: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, 
+                    "Gagal menambahkan antrian: " + ex.getMessage(), 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -108,43 +136,143 @@ public class FormAntrian extends JFrame {
         tableModel.setRowCount(0);
         try {
             List<String[]> daftar = AntrianController.getDaftarAntrian();
+            
+            if (daftar.isEmpty()) {
+                // Tampilkan pesan jika tidak ada data
+                JLabel lblKosong = new JLabel("Tidak ada data antrian", JLabel.CENTER);
+                lblKosong.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+                lblKosong.setForeground(Color.GRAY);
+                // Bisa menambahkan label ini ke panel jika diperlukan
+            }
+            
             for (int i = 0; i < daftar.size(); i++) {
-                String[] row = daftar.get(i); // [id_janji, id_pasien, tanggal_janji]
+                String[] row = daftar.get(i); 
+                // Format: [id_janji, id_pasien, nama_pasien, tanggal_antrian, status]
                 tableModel.addRow(new Object[] {
-                        i + 1, row[0], row[1], row[2]
+                    i + 1,           // No urut
+                    row[0],          // ID Janji
+                    row[1],          // ID Pasien  
+                    row[2],          // Nama Pasien
+                    row[3],          // Tanggal Antrian
+                    row[4]           // Status
                 });
             }
+            
+            // Update status bar atau label info
+            setTitle("Antrian Pasien - Total: " + daftar.size() + " antrian");
+            
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Gagal memuat data antrian.");
+            JOptionPane.showMessageDialog(this, 
+                "Gagal memuat data antrian: " + e.getMessage(), 
+                "Error Database", 
+                JOptionPane.ERROR_MESSAGE);
+                
+            // Log error untuk debugging
+            System.err.println("Error saat refresh antrian:");
+            System.err.println("Message: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.err.println("Cause: " + e.getCause().getMessage());
+            }
         }
     }
 
     private void selesaikanAntrian() {
-        String idPasien = JOptionPane.showInputDialog(this, "Masukkan ID Pasien yang akan diselesaikan:");
-        if (idPasien != null && !idPasien.trim().isEmpty()) {
-            try {
-                List<String[]> daftar = AntrianController.getDaftarAntrian();
-                String idJanji = null;
-                for (String[] row : daftar) {
-                    if (row[0].equals(idPasien.trim())) {
-                        idJanji = row[1];
-                        break;
-                    }
-                }
-
-                if (idJanji != null) {
-                    AntrianController.hapusAntrianDanCatat(idPasien.trim(), idJanji);
-                    JOptionPane.showMessageDialog(this, "Antrian telah diselesaikan dan dicatat.");
-                    refreshAntrian();
-                } else {
-                    JOptionPane.showMessageDialog(this, "ID Pasien tidak ditemukan!");
-                }
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Gagal menyelesaikan antrian: " + ex.getMessage());
+        // Ambil data dari baris yang dipilih
+        int selectedRow = tableAntrian.getSelectedRow();
+        
+        if (selectedRow == -1) {
+            // Jika tidak ada baris yang dipilih, minta input manual
+            String idPasien = JOptionPane.showInputDialog(this, 
+                "Masukkan ID Pasien yang akan diselesaikan:", 
+                "Selesaikan Antrian", 
+                JOptionPane.QUESTION_MESSAGE);
+                
+            if (idPasien == null || idPasien.trim().isEmpty()) {
+                return;
             }
+            
+            prosesSelesaikanAntrian(idPasien.trim());
+            
+        } else {
+            // Ambil data dari baris yang dipilih
+            String idJanji = tableModel.getValueAt(selectedRow, 1).toString();
+            String idPasien = tableModel.getValueAt(selectedRow, 2).toString();
+            String namaPasien = tableModel.getValueAt(selectedRow, 3).toString();
+            
+            int konfirmasi = JOptionPane.showConfirmDialog(this,
+                "Selesaikan antrian untuk:\n" +
+                "ID Pasien: " + idPasien + "\n" +
+                "Nama: " + namaPasien + "\n\n" +
+                "Apakah Anda yakin?",
+                "Konfirmasi",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+                
+            if (konfirmasi == JOptionPane.YES_OPTION) {
+                try {
+                    AntrianController.hapusAntrianDanCatat(idPasien, idJanji);
+                    JOptionPane.showMessageDialog(this, 
+                        "Antrian telah diselesaikan dan dicatat.", 
+                        "Sukses", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    refreshAntrian();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, 
+                        "Gagal menyelesaikan antrian: " + ex.getMessage(), 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+    
+    private void prosesSelesaikanAntrian(String idPasien) {
+        try {
+            List<String[]> daftar = AntrianController.getDaftarAntrian();
+            String idJanji = null;
+            String namaPasien = null;
+            
+            // Cari data pasien di antrian
+            for (String[] row : daftar) {
+                if (row[1].equals(idPasien)) { // row[1] adalah id_pasien
+                    idJanji = row[0]; // row[0] adalah id_janji
+                    namaPasien = row[2]; // row[2] adalah nama_pasien
+                    break;
+                }
+            }
+
+            if (idJanji != null) {
+                int konfirmasi = JOptionPane.showConfirmDialog(this,
+                    "Selesaikan antrian untuk:\n" +
+                    "ID Pasien: " + idPasien + "\n" +
+                    "Nama: " + namaPasien + "\n\n" +
+                    "Apakah Anda yakin?",
+                    "Konfirmasi",
+                    JOptionPane.YES_NO_OPTION);
+                    
+                if (konfirmasi == JOptionPane.YES_OPTION) {
+                    AntrianController.hapusAntrianDanCatat(idPasien, idJanji);
+                    JOptionPane.showMessageDialog(this, 
+                        "Antrian telah diselesaikan dan dicatat.", 
+                        "Sukses", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    refreshAntrian();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "ID Pasien tidak ditemukan dalam antrian!", 
+                    "Data Tidak Ditemukan", 
+                    JOptionPane.WARNING_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, 
+                "Gagal menyelesaikan antrian: " + ex.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 }
