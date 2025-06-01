@@ -95,39 +95,39 @@ public class MainApp extends JFrame {
     }
 
     private void bukaForm(int index) {
-        try {
-            // Clear previous content in panelTengah
-            panelTengah.removeAll();
-            panelTengah.setLayout(new BorderLayout()); // Set layout to BorderLayout for PanelPasien
-    
-            switch (index) {
-                case 0 -> {
-                    PanelPasien panelPasien = new PanelPasien();
-                    panelTengah.add(panelPasien, BorderLayout.CENTER);
-                    panelTengah.revalidate();
-                    panelTengah.repaint();
-                }
-                case 1 -> safeOpen(() -> new FormAntrian(), "Form Antrian");
-                case 2 -> safeOpen(() -> new FormBuatJanji(), "Form Buat Janji");
-                case 3 -> safeOpen(() -> new FormEditJanji(), "Form Edit Janji");
-                case 4 -> safeOpen(() -> new FormReminder(), "Form Reminder");
-                case 5 -> safeOpen(() -> new Statistik(), "Form Statistik");
-                case 6 -> safeOpen(() -> new FormExportCSV(), "Form Export Laporan");
-                case 7 -> safeOpen(() -> new FormCekTanggal(), "Form Cek Tanggal");
-                case 8 -> safeOpen(() -> new FormRekamMedis(), "Form Rekam Medis");
-                default -> showMessage("Fitur belum tersedia.");
+    try {
+        // Clear previous content in panelTengah
+        panelTengah.removeAll();
+        panelTengah.setLayout(new BorderLayout()); // Set layout to BorderLayout for PanelPasien
+
+        switch (index) {
+            case 0 -> {
+                PanelPasien panelPasien = new PanelPasien();
+                panelTengah.add(panelPasien, BorderLayout.CENTER);
+                panelTengah.revalidate();
+                panelTengah.repaint();
             }
-        } catch (Exception e) {
-            showMessage("Error membuka form: " + e.getMessage());
-            e.printStackTrace();
+            case 1 -> safeOpen(() -> new FormAntrian(), "Form Antrian");
+            case 2 -> safeOpen(() -> new FormBuatJanji(), "Form Buat Janji");
+            case 3 -> safeOpen(() -> new FormEditJanji(), "Form Edit Janji");
+            case 4 -> safeOpen(() -> new FormReminder(), "Form Reminder");
+            case 5 -> safeOpen(() -> new Statistik(), "Form Statistik");
+            case 6 -> safeOpen(() -> new FormExportCSV(), "Form Export Laporan");
+            case 7 -> safeOpen(() -> new FormCekTanggal(), "Form Cek Tanggal");
+            case 8 -> safeOpen(() -> new FormRekamMedis(), "Form Rekam Medis");
+            default -> showMessage("Fitur belum tersedia.");
         }
+    } catch (Exception e) {
+        showMessage("Error membuka form: " + e.getMessage());
+        e.printStackTrace();
     }
-    
-    // Remove the unimplemented method:
-    // private Object tampilkanDiPanelBaru(PanelPasien panelPasien) {
-    //     // TODO Auto-generated method stub
-    //     throw new UnsupportedOperationException("Unimplemented method 'tampilkanDiPanelBaru'");
-    // }
+}
+
+// Remove the unimplemented method:
+// private Object tampilkanDiPanelBaru(PanelPasien panelPasien) {
+//     // TODO Auto-generated method stub
+//     throw new UnsupportedOperationException("Unimplemented method 'tampilkanDiPanelBaru'");
+// }
 
     private Object tampilkanDiPanelBaru(PanelPasien panelPasien) {
         // TODO Auto-generated method stub
