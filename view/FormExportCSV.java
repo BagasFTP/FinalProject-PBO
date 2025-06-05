@@ -22,6 +22,7 @@ public class FormExportCSV extends JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
+        // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(52, 152, 219));
         headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
@@ -31,6 +32,7 @@ public class FormExportCSV extends JFrame {
         headerPanel.add(lblJudul, BorderLayout.WEST);
         add(headerPanel, BorderLayout.NORTH);
 
+        // Content
         JPanel contentPanel = new JPanel(new GridBagLayout());
         contentPanel.setBackground(Color.WHITE);
         contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -42,10 +44,7 @@ public class FormExportCSV extends JFrame {
         JLabel lblDataType = new JLabel("Pilih Data untuk Export:");
         lblDataType.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         cbxDataType = new JComboBox<>(new String[] {
-                "Data Pasien",
-                "Statistik Kunjungan",
-                "Data Janji Temu",
-                "Data Rekam Medis"
+                "Data Pasien", "Statistik Kunjungan", "Data Janji Temu", "Data Rekam Medis"
         });
         cbxDataType.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
@@ -54,12 +53,15 @@ public class FormExportCSV extends JFrame {
         btnExport.setForeground(Color.WHITE);
         btnExport.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnExport.setFocusPainted(false);
+        btnExport.addActionListener(e -> exportDataToCSV());
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         contentPanel.add(lblDataType, gbc);
+
         gbc.gridx = 1;
         contentPanel.add(cbxDataType, gbc);
+
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 2;
@@ -68,16 +70,14 @@ public class FormExportCSV extends JFrame {
 
         add(contentPanel, BorderLayout.CENTER);
 
-        btnExport.addActionListener(e -> exportDataToCSV());
-
         setVisible(true);
     }
 
     private void exportDataToCSV() {
         String selectedDataType = (String) cbxDataType.getSelectedItem();
         String fileNamePrefix = "";
-        String[] columnHeaders = null;
         String query = "";
+        String[] columnHeaders = null;
 
         switch (selectedDataType) {
             case "Data Pasien":
@@ -121,27 +121,24 @@ public class FormExportCSV extends JFrame {
         fileChooser.setSelectedFile(new File(fileNamePrefix + "_" + timestamp + ".csv"));
 
         int userSelection = fileChooser.showSaveDialog(this);
-        if (userSelection != JFileChooser.APPROVE_OPTION)
-            return;
 
-        File fileToSave = fileChooser.getSelectedFile();
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
 
-        try (Connection conn = koneksi.getKoneksi()) {
-            if (conn == null) {
-                JOptionPane.showMessageDialog(this, "Gagal terhubung ke database.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+            if (!fileToSave.getName().toLowerCase().endsWith(".csv")) {
+                fileToSave = new File(fileToSave.getAbsolutePath() + ".csv");
             }
 
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
+            try (
+                    Connection conn = koneksi.getKoneksi();
+                    Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery(query);
+                    BufferedWriter writer = new BufferedWriter(
+                            new OutputStreamWriter(new FileOutputStream(fileToSave), "UTF-8"))) {
+                writer.write("\uFEFF"); // Write BOM for UTF-8
 
-            if (!rs.isBeforeFirst()) {
-                JOptionPane.showMessageDialog(this, "Data tidak ditemukan.", "Info", JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileToSave))) {
-                writer.write(String.join(",", columnHeaders));
+                // Write header
+                writer.write(String.join(";", columnHeaders));
                 writer.newLine();
 
                 ResultSetMetaData metaData = rs.getMetaData();
@@ -149,36 +146,32 @@ public class FormExportCSV extends JFrame {
                     StringBuilder row = new StringBuilder();
                     for (int i = 1; i <= metaData.getColumnCount(); i++) {
                         String value = rs.getString(i);
-                        if (value == null)
-                            value = "";
-                        value = value.replace("\"", "\"\"");
-                        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+                        value = (value == null) ? "" : value.replace("\"", "\"\"");
+                        if (value.contains(";") || value.contains("\"") || value.contains("\n")) {
                             row.append("\"").append(value).append("\"");
                         } else {
                             row.append(value);
                         }
-                        if (i < metaData.getColumnCount())
-                            row.append(",");
+                        if (i < metaData.getColumnCount()) {
+                            row.append(";");
+                        }
                     }
                     writer.write(row.toString());
                     writer.newLine();
                 }
 
-                JOptionPane.showMessageDialog(this, "Berhasil ekspor ke file:\n" + fileToSave.getAbsolutePath(),
+                JOptionPane.showMessageDialog(this, "Laporan berhasil disimpan:\n" + fileToSave.getAbsolutePath(),
                         "Sukses", JOptionPane.INFORMATION_MESSAGE);
+
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Gagal mengambil data dari database:\n" + ex.getMessage(),
+                        "Error Database", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "Gagal menulis file CSV:\n" + ex.getMessage(),
+                        "Error I/O", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
             }
-
-            rs.close();
-            stmt.close();
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Kesalahan database:\n" + e.getMessage(), "SQL Error",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Kesalahan saat menulis file:\n" + e.getMessage(), "File Error",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
         }
     }
 
@@ -186,10 +179,11 @@ public class FormExportCSV extends JFrame {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "Driver MySQL tidak ditemukan. Tambahkan library JDBC.", "Error",
+            JOptionPane.showMessageDialog(null, "MySQL JDBC Driver tidak ditemukan.", "Error",
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
+
         SwingUtilities.invokeLater(FormExportCSV::new);
     }
 }
