@@ -79,9 +79,8 @@ public class Statistik extends JFrame {
         int currentYear = now.getYear();
 
         try (Connection conn = koneksi.getKoneksi();
-             PreparedStatement ps = conn.prepareStatement(
-                "SELECT COUNT(*) FROM statistik_kunjungan WHERE MONTH(tanggal_kunjungan) = ? AND YEAR(tanggal_kunjungan) = ?"
-             )) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM statistik_kunjungan WHERE MONTH(tanggal_kunjungan) = ? AND YEAR(tanggal_kunjungan) = ?")) {
             ps.setInt(1, currentMonth);
             ps.setInt(2, currentYear);
             ResultSet rs = ps.executeQuery();
@@ -92,12 +91,14 @@ public class Statistik extends JFrame {
                 btnExport.setEnabled(true);
             } else {
                 lblTotalKunjungan.setText("Gagal memuat data statistik.");
-                JOptionPane.showMessageDialog(this, "Gagal memuat data statistik dari database.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Gagal memuat data statistik dari database.", "Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
             lblTotalKunjungan.setText("Error koneksi database.");
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat mengakses database: " + ex.getMessage(), "Error Database", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat mengakses database: " + ex.getMessage(),
+                    "Error Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -109,7 +110,8 @@ public class Statistik extends JFrame {
             chooser.setSelectedFile(new java.io.File("statistik_kunjungan_" +
                     LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".pdf"));
 
-            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+            if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
+                return;
 
             Document doc = new Document();
             // Use getSelectedFile().getAbsolutePath() to ensure full path
@@ -126,7 +128,9 @@ public class Statistik extends JFrame {
             // Date of Report Generation
             Font dateFont = new Font(Font.HELVETICA, 12, Font.NORMAL);
             // Corrected DateTimeFormatter pattern: "dd MMMM yyyy"
-            Paragraph dateReport = new Paragraph("Tanggal Laporan: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")), dateFont);
+            Paragraph dateReport = new Paragraph(
+                    "Tanggal Laporan: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")),
+                    dateFont);
             dateReport.setAlignment(Element.ALIGN_RIGHT);
             doc.add(dateReport);
             doc.add(new Paragraph(" ")); // Spacer
@@ -134,9 +138,9 @@ public class Statistik extends JFrame {
             // Statistik details
             Font detailFont = new Font(Font.HELVETICA, 14, Font.NORMAL, Color.DARK_GRAY);
             Paragraph totalKunjunganParagraph = new Paragraph(
-                "Total Kunjungan Bulan Ini (" + LocalDate.now().getMonth().toString() + " " + LocalDate.now().getYear() + "): " + totalKunjunganBulanIni,
-                detailFont
-            );
+                    "Total Kunjungan Bulan Ini (" + LocalDate.now().getMonth().toString() + " "
+                            + LocalDate.now().getYear() + "): " + totalKunjunganBulanIni,
+                    detailFont);
             totalKunjunganParagraph.setAlignment(Element.ALIGN_LEFT);
             doc.add(totalKunjunganParagraph);
             doc.add(new Paragraph(" ")); // Spacer
@@ -173,12 +177,12 @@ public class Statistik extends JFrame {
 
             // Fetch daily statistics
             try (Connection conn = koneksi.getKoneksi();
-                 PreparedStatement psDaily = conn.prepareStatement(
-                    "SELECT tanggal_kunjungan, COUNT(DISTINCT id_pasien) as jumlah_pasien, GROUP_CONCAT(DISTINCT jenis_kunjungan ORDER BY jenis_kunjungan SEPARATOR ', ') AS jenis_kunjungan_list " +
-                    "FROM statistik_kunjungan " +
-                    "WHERE MONTH(tanggal_kunjungan) = ? AND YEAR(tanggal_kunjungan) = ? " +
-                    "GROUP BY tanggal_kunjungan ORDER BY tanggal_kunjungan ASC"
-                 )) {
+                    PreparedStatement psDaily = conn.prepareStatement(
+                            "SELECT tanggal_kunjungan, COUNT(DISTINCT id_pasien) as jumlah_pasien, GROUP_CONCAT(DISTINCT jenis_kunjungan ORDER BY jenis_kunjungan SEPARATOR ', ') AS jenis_kunjungan_list "
+                                    +
+                                    "FROM statistik_kunjungan " +
+                                    "WHERE MONTH(tanggal_kunjungan) = ? AND YEAR(tanggal_kunjungan) = ? " +
+                                    "GROUP BY tanggal_kunjungan ORDER BY tanggal_kunjungan ASC")) {
                 psDaily.setInt(1, LocalDate.now().getMonthValue());
                 psDaily.setInt(2, LocalDate.now().getYear());
                 ResultSet rsDaily = psDaily.executeQuery();
@@ -204,16 +208,22 @@ public class Statistik extends JFrame {
             doc.add(footer);
 
             doc.close();
-            JOptionPane.showMessageDialog(this, "PDF berhasil disimpan di:\n" + chooser.getSelectedFile().getAbsolutePath(), "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "PDF berhasil disimpan di:\n" + chooser.getSelectedFile().getAbsolutePath(), "Sukses",
+                    JOptionPane.INFORMATION_MESSAGE);
         } catch (DocumentException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Gagal membuat PDF (Document Error): " + ex.getMessage(), "Error PDF", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal membuat PDF (Document Error): " + ex.getMessage(), "Error PDF",
+                    JOptionPane.ERROR_MESSAGE);
         } catch (java.io.IOException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Gagal membuat PDF (I/O Error, mungkin file sedang digunakan atau izin akses): " + ex.getMessage(), "Error PDF", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Gagal membuat PDF (I/O Error, mungkin file sedang digunakan atau izin akses): " + ex.getMessage(),
+                    "Error PDF", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan tidak terduga saat membuat PDF: " + ex.getMessage(), "Error Umum", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan tidak terduga saat membuat PDF: " + ex.getMessage(),
+                    "Error Umum", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -221,7 +231,8 @@ public class Statistik extends JFrame {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "MySQL JDBC Driver not found. Please add the library.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "MySQL JDBC Driver not found. Please add the library.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
         SwingUtilities.invokeLater(Statistik::new);

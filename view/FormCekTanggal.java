@@ -35,7 +35,7 @@ public class FormCekTanggal extends JFrame {
         // Input Panel
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         inputPanel.setBackground(Color.WHITE);
-        
+
         JLabel lTgl = new JLabel("Pilih Tanggal:");
         lTgl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         spinnerTanggal = new JSpinner(new SpinnerDateModel());
@@ -60,12 +60,12 @@ public class FormCekTanggal extends JFrame {
         resultArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JScrollPane scrollPane = new JScrollPane(resultArea);
         scrollPane.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            "Hasil Pencarian",
-            javax.swing.border.TitledBorder.LEFT,
-            javax.swing.border.TitledBorder.TOP,
-            new Font("Segoe UI", Font.BOLD, 14),
-            Color.DARK_GRAY));
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                "Hasil Pencarian",
+                javax.swing.border.TitledBorder.LEFT,
+                javax.swing.border.TitledBorder.TOP,
+                new Font("Segoe UI", Font.BOLD, 14),
+                Color.DARK_GRAY));
         add(scrollPane, BorderLayout.SOUTH);
 
         scrollPane.setPreferredSize(new Dimension(getWidth(), 250));
@@ -86,12 +86,11 @@ public class FormCekTanggal extends JFrame {
         // 1. Check for patients with appointments (janji_temu)
         hasil.append("--- Janji Temu Hari Ini ---\n");
         try (Connection conn = koneksi.getKoneksi();
-             PreparedStatement psJanji = conn.prepareStatement(
-                "SELECT jt.id_janji_temu, p.id_pasien, p.nama_pasien, jt.waktu_janji, jt.status " +
-                "FROM janji_temu jt " +
-                "JOIN pasien p ON jt.id_pasien = p.id_pasien " +
-                "WHERE jt.tanggal_janji = ?"
-             )) {
+                PreparedStatement psJanji = conn.prepareStatement(
+                        "SELECT jt.id_janji_temu, p.id_pasien, p.nama_pasien, jt.waktu_janji, jt.status " +
+                                "FROM janji_temu jt " +
+                                "JOIN pasien p ON jt.id_pasien = p.id_pasien " +
+                                "WHERE jt.tanggal_janji = ?")) {
             psJanji.setString(1, tanggalCari);
             ResultSet rsJanji = psJanji.executeQuery();
 
@@ -109,19 +108,20 @@ public class FormCekTanggal extends JFrame {
                 }
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error fetching appointment data: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error fetching appointment data: " + ex.getMessage(), "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
 
         hasil.append("\n--- Kunjungan Pasien Hari Ini ---\n");
         // 2. Check for patient visits (statistik_kunjungan)
         try (Connection conn = koneksi.getKoneksi();
-             PreparedStatement psKunjungan = conn.prepareStatement(
-                "SELECT sk.id_pasien, p.nama_pasien, sk.jenis_kunjungan " + // Tambahkan spasi di akhir dan gunakan alias 'p'
-                "FROM statistik_kunjungan sk " +
-                "JOIN pasien p ON sk.id_pasien = p.id_pasien " + // Gunakan alias 'p' di sini
-                "WHERE sk.tanggal_kunjungan = ?"
-             )) {
+                PreparedStatement psKunjungan = conn.prepareStatement(
+                        "SELECT sk.id_pasien, p.nama_pasien, sk.jenis_kunjungan " + // Tambahkan spasi di akhir dan
+                                                                                    // gunakan alias 'p'
+                                "FROM statistik_kunjungan sk " +
+                                "JOIN pasien p ON sk.id_pasien = p.id_pasien " + // Gunakan alias 'p' di sini
+                                "WHERE sk.tanggal_kunjungan = ?")) {
             psKunjungan.setString(1, tanggalCari);
             ResultSet rsKunjungan = psKunjungan.executeQuery();
 
@@ -137,13 +137,15 @@ public class FormCekTanggal extends JFrame {
                 }
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error fetching visit data: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error fetching visit data: " + ex.getMessage(), "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
 
         resultArea.setText(hasil.toString());
         if (hasil.toString().contains("Tidak ada") && !hasil.toString().contains("Janji ID")) {
-            JOptionPane.showMessageDialog(this, "Tidak ada data (janji temu atau kunjungan) pada tanggal tersebut.", "Informasi", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Tidak ada data (janji temu atau kunjungan) pada tanggal tersebut.",
+                    "Informasi", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -151,7 +153,9 @@ public class FormCekTanggal extends JFrame {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver"); // MySQL Connector 8.x
         } catch (ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "Driver MySQL tidak ditemukan. Pastikan Anda telah menambahkan library JDBC MySQL.", "Error Driver", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null,
+                    "Driver MySQL tidak ditemukan. Pastikan Anda telah menambahkan library JDBC MySQL.", "Error Driver",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
 
