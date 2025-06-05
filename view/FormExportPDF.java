@@ -124,56 +124,83 @@ public class FormExportPDF extends JFrame {
         fileChooser.setSelectedFile(new java.io.File(fileNamePrefix + "_" + timestamp + ".pdf"));
 
         int userSelection = fileChooser.showSaveDialog(this);
+        if (userSelection != JFileChooser.APPROVE_OPTION)
+            return;
 
-        if (userSelection == JFileChooser.APPROVE_OPTION) {
-            java.io.File fileToSave = fileChooser.getSelectedFile();
+        java.io.File fileToSave = fileChooser.getSelectedFile();
+        if (!fileToSave.getName().toLowerCase().endsWith(".pdf")) {
+            fileToSave = new java.io.File(fileToSave.getAbsolutePath() + ".pdf");
+        }
 
-            if (!fileToSave.getName().toLowerCase().endsWith(".pdf")) {
-                fileToSave = new java.io.File(fileToSave.getAbsolutePath() + ".pdf");
+        try (
+                Connection conn = koneksi.getKoneksi();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+
+            if (!rs.isBeforeFirst()) {
+                JOptionPane.showMessageDialog(this, "Data kosong. Tidak ada yang bisa diekspor.", "Info",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
             }
 
-            try (
-                    Connection conn = koneksi.getKoneksi();
-                    Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery(query)) {
-                Document document = new Document(PageSize.A4.rotate());
-                PdfWriter.getInstance(document, new FileOutputStream(fileToSave));
-                document.open();
+            Document document = new Document(PageSize.A4.rotate());
+            PdfWriter.getInstance(document, new FileOutputStream(fileToSave));
+            document.open();
 
-                Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
-                Paragraph title = new Paragraph("Laporan " + selectedDataType, titleFont);
-                title.setAlignment(Element.ALIGN_CENTER);
-                document.add(title);
-                document.add(new Paragraph(
-                        "Tanggal Cetak: " + new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date())));
-                document.add(new Paragraph(" "));
+            // Font setup
+            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
+            Font headerFont = new Font(Font.HELVETICA, 12, Font.BOLD);
+            Font cellFont = new Font(Font.HELVETICA, 10);
 
-                PdfPTable table = new PdfPTable(columnHeaders.length);
-                table.setWidthPercentage(100);
-                for (String header : columnHeaders) {
-                    PdfPCell cell = new PdfPCell(new Phrase(header));
-                    cell.setBackgroundColor(new Color(200, 221, 242));
-                    table.addCell(cell);
-                }
+            // Title
+            Paragraph title = new Paragraph("Laporan " + selectedDataType, titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(10f);
+            document.add(title);
 
-                ResultSetMetaData metaData = rs.getMetaData();
-                while (rs.next()) {
-                    for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                        String value = rs.getString(i);
-                        table.addCell(value != null ? value : "");
-                    }
-                }
+            document.add(
+                    new Paragraph("Tanggal Cetak: " + new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(new Date())));
+            document.add(Chunk.NEWLINE);
 
-                document.add(table);
-                document.close();
-
-                JOptionPane.showMessageDialog(this, "Laporan PDF berhasil disimpan:\n" + fileToSave.getAbsolutePath(),
-                        "Sukses", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Gagal menulis file PDF:\n" + ex.getMessage(), "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace();
+            // Table
+            PdfPTable table = new PdfPTable(columnHeaders.length);
+            table.setWidthPercentage(100);
+            float[] columnWidths = new float[columnHeaders.length];
+            for (int i = 0; i < columnHeaders.length; i++) {
+                columnWidths[i] = 1f;
             }
+            table.setWidths(columnWidths);
+
+            // Header styling
+            for (String header : columnHeaders) {
+                PdfPCell headerCell = new PdfPCell(new Phrase(header, headerFont));
+                headerCell.setBackgroundColor(new Color(200, 221, 242));
+                headerCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                headerCell.setPadding(5);
+                table.addCell(headerCell);
+            }
+
+            ResultSetMetaData metaData = rs.getMetaData();
+            while (rs.next()) {
+                for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                    String value = rs.getString(i);
+                    PdfPCell dataCell = new PdfPCell(new Phrase(value != null ? value : "", cellFont));
+                    dataCell.setPadding(4);
+                    dataCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                    table.addCell(dataCell);
+                }
+            }
+
+            document.add(table);
+            document.close();
+
+            JOptionPane.showMessageDialog(this, "Laporan PDF berhasil disimpan:\n" + fileToSave.getAbsolutePath(),
+                    "Sukses", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Gagal menulis file PDF:\n" + ex.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
