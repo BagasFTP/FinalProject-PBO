@@ -112,7 +112,7 @@ public class MainApp extends JFrame {
                 case 3 -> safeOpen(() -> new FormEditJanji(), "Form Edit Janji");
                 case 4 -> safeOpen(() -> new FormReminder(), "Form Reminder");
                 case 5 -> safeOpen(() -> new Statistik(), "Form Statistik");
-                case 6 -> safeOpen(() -> new FormExportCSV(), "Form Export Laporan");
+                case 6 -> safeOpen(() -> new FormExportPDF(), "Form Export Laporan");
                 case 7 -> safeOpen(() -> new FormCekTanggal(), "Form Cek Tanggal");
                 case 8 -> safeOpen(() -> new FormRekamMedis(), "Form Rekam Medis");
                 default -> showMessage("Fitur belum tersedia.");
