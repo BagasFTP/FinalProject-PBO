@@ -112,12 +112,30 @@ public class MainApp extends JFrame {
                     FormBuatJanji formBuatJanji = new FormBuatJanji();
                     panelTengah.add(formBuatJanji, BorderLayout.CENTER);
                 }
-                case 3 -> safeOpen(() -> new FormEditJanji(), "Form Edit Janji");
-                case 4 -> safeOpen(() -> new FormReminder(), "Form Reminder");
-                case 5 -> safeOpen(() -> new Statistik(), "Form Statistik");
-                case 6 -> safeOpen(() -> new FormExportPDF(), "Form Export Laporan");
-                case 7 -> safeOpen(() -> new FormCekTanggal(), "Form Cek Tanggal");
-                case 8 -> safeOpen(() -> new FormRekamMedis(), "Form Rekam Medis");
+                case 3 -> safeOpen(() -> {
+                    FormEditJanji formEditJanji = new FormEditJanji();
+                    panelTengah.add(formEditJanji, BorderLayout.CENTER);
+                }, "Form Edit Janji");
+                case 4 -> safeOpen(() -> {
+                    FormReminder formReminder = new FormReminder();
+                    panelTengah.add(formReminder, BorderLayout.CENTER);
+                }, "Form Reminder");
+                case 5 -> safeOpen(() -> {
+                    Statistik statistik = new Statistik();
+                    panelTengah.add(statistik, BorderLayout.CENTER);
+                }, "Form Statistik");
+                case 6 -> safeOpen(() -> {
+                    FormExportPDF formExportPDF = new FormExportPDF();
+                    panelTengah.add(formExportPDF, BorderLayout.CENTER);
+                }, "Form Export Laporan");
+                case 7 -> { // Modified case for FormCekTanggal
+                    FormCekTanggal formCekTanggal = new FormCekTanggal();
+                    panelTengah.add(formCekTanggal, BorderLayout.CENTER);
+                }
+                case 8 -> safeOpen(() -> {
+                    FormRekamMedis formRekamMedis = new FormRekamMedis();
+                    panelTengah.add(formRekamMedis, BorderLayout.CENTER);
+                }, "Form Rekam Medis");
                 default -> showMessage("Fitur belum tersedia.");
             }
 
@@ -129,18 +147,6 @@ public class MainApp extends JFrame {
             showMessage("Error membuka form: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    // Remove the unimplemented method:
-    // private Object tampilkanDiPanelBaru(PanelPasien panelPasien) {
-    // // TODO Auto-generated method stub
-    // throw new UnsupportedOperationException("Unimplemented method
-    // 'tampilkanDiPanelBaru'");
-    // }
-
-    private Object tampilkanDiPanelBaru(PanelPasien panelPasien) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'tampilkanDiPanelBaru'");
     }
 
     private void safeOpen(Runnable action, String formName) {

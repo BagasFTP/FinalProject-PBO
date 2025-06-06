@@ -10,7 +10,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class FormCekTanggal extends JFrame {
+public class FormCekTanggal extends JPanel { // Change from JFrame to JPanel
     private JSpinner spinnerTanggal;
     private JTable tableJanjiTemu;
     private JTable tableKunjungan;
@@ -18,17 +18,17 @@ public class FormCekTanggal extends JFrame {
     private DefaultTableModel modelKunjungan;
 
     public FormCekTanggal() {
-        setTitle("Cek Pasien & Janji Berdasarkan Tanggal");
-        setSize(900, 700);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        // Remove JFrame specific settings
+        // setTitle("Cek Pasien & Janji Berdasarkan Tanggal");
+        // setSize(900, 700);
+        // setLocationRelativeTo(null);
+        // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // Panel utama
-        JPanel panelUtama = new JPanel();
-        panelUtama.setLayout(new BorderLayout(10, 10));
-        panelUtama.setBackground(Color.WHITE);
-        panelUtama.setBorder(new EmptyBorder(10, 10, 10, 10));
-        setContentPane(panelUtama);
+        // Panel utama (this JPanel itself)
+        setLayout(new BorderLayout(10, 10)); // Apply layout to this JPanel
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(10, 10, 10, 10));
+        // setContentPane(panelUtama); // No longer needed
 
         // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -38,7 +38,7 @@ public class FormCekTanggal extends JFrame {
         lblJudul.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblJudul.setForeground(Color.WHITE);
         headerPanel.add(lblJudul, BorderLayout.WEST);
-        panelUtama.add(headerPanel, BorderLayout.NORTH);
+        add(headerPanel, BorderLayout.NORTH); // Add to this JPanel
 
         // Panel isi (tengah)
         JPanel isiPanel = new JPanel();
@@ -88,12 +88,12 @@ public class FormCekTanggal extends JFrame {
         // Scroll untuk isiPanel
         JScrollPane scrollIsi = new JScrollPane(isiPanel);
         scrollIsi.setBorder(null); // opsional
-        panelUtama.add(scrollIsi, BorderLayout.CENTER);
+        add(scrollIsi, BorderLayout.CENTER); // Add to this JPanel
 
         // Event
         btnCari.addActionListener(e -> cariDataTanggal());
 
-        setVisible(true);
+        // setVisible(true); // No longer needed for a JPanel
     }
 
     private void cariDataTanggal() {
@@ -164,16 +164,18 @@ public class FormCekTanggal extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(null,
-                    "Driver MySQL tidak ditemukan. Pastikan Anda telah menambahkan library JDBC MySQL.",
-                    "Error Driver", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        SwingUtilities.invokeLater(FormCekTanggal::new);
-    }
+    // The main method is no longer necessary as this will be a panel
+    // and will be instantiated by MainApp.
+    // public static void main(String[] args) {
+    //     try {
+    //         Class.forName("com.mysql.cj.jdbc.Driver");
+    //     } catch (ClassNotFoundException e) {
+    //         JOptionPane.showMessageDialog(null,
+    //                 "Driver MySQL tidak ditemukan. Pastikan Anda telah menambahkan library JDBC MySQL.",
+    //                 "Error Driver", JOptionPane.ERROR_MESSAGE);
+    //         return;
+    //     }
+    //
+    //     SwingUtilities.invokeLater(FormCekTanggal::new);
+    // }
 }
