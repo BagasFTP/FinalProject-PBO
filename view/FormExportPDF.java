@@ -15,17 +15,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-public class FormExportPDF extends JFrame {
+public class FormExportPDF extends JPanel {
 
     private JComboBox<String> cbxDataType;
     private JButton btnExport;
 
     public FormExportPDF() {
-        setTitle("Export Laporan ke PDF");
-        setSize(450, 250);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(10, 10)); 
 
         // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -75,7 +71,7 @@ public class FormExportPDF extends JFrame {
         contentPanel.add(btnExport, gbc);
 
         add(contentPanel, BorderLayout.CENTER);
-        setVisible(true);
+        // No setVisible(true) for JPanel, as it's added to another container
     }
 
     private void exportDataToPDF() {
@@ -125,7 +121,7 @@ public class FormExportPDF extends JFrame {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         fileChooser.setSelectedFile(new java.io.File(fileNamePrefix + "_" + timestamp + ".pdf"));
 
-        int userSelection = fileChooser.showSaveDialog(this);
+        int userSelection = fileChooser.showSaveDialog(this); // Use 'this' (the JPanel) as parent component for dialog
         if (userSelection != JFileChooser.APPROVE_OPTION)
             return;
 
@@ -211,9 +207,5 @@ public class FormExportPDF extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(FormExportPDF::new);
     }
 }

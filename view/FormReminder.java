@@ -1,57 +1,117 @@
 package view;
 
-import javax.swing.*;
-import java.sql.*;
 import config.koneksi;
 
-public class FormReminder extends JFrame {
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class FormReminder extends JPanel {
+    private JTable tableReminder;
+    private DefaultTableModel modelReminder;
+    private JButton btnRefresh;
+    private JSpinner spinnerTanggal;
+
     public FormReminder() {
-        setTitle("Reminder Jadwal Temu");
-        setSize(400, 200);
-        setLayout(null);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JLabel lId = new JLabel("ID Pasien");
-        JTextField tfId = new JTextField();
-        JButton btnCek = new JButton("Cek Jadwal");
+        // Header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(52, 152, 219));
+        headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
+        JLabel lblJudul = new JLabel("Pengingat Janji Temu");
+        lblJudul.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblJudul.setForeground(Color.WHITE);
+        headerPanel.add(lblJudul, BorderLayout.WEST);
+        add(headerPanel, BorderLayout.NORTH);
 
-        lId.setBounds(30, 30, 100, 25);
-        tfId.setBounds(150, 30, 200, 25);
-        btnCek.setBounds(150, 70, 120, 30);
+        // Control Panel
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        controlPanel.setBackground(Color.WHITE);
 
-        add(lId);
-        add(tfId);
-        add(btnCek);
+        JLabel lblTanggal = new JLabel("Tanggal:");
+        lblTanggal.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        controlPanel.add(lblTanggal);
 
-        btnCek.addActionListener(e -> {
-            String idPasien = tfId.getText().trim();
-            if (idPasien.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID Pasien tidak boleh kosong!");
-                return;
+        spinnerTanggal = new JSpinner(new SpinnerDateModel());
+        spinnerTanggal.setEditor(new JSpinner.DateEditor(spinnerTanggal, "yyyy-MM-dd"));
+        spinnerTanggal.setPreferredSize(new Dimension(150, 30));
+        controlPanel.add(spinnerTanggal);
+
+        btnRefresh = new JButton("Refresh Data");
+        btnRefresh.setBackground(new Color(46, 204, 113));
+        btnRefresh.setForeground(Color.WHITE);
+        btnRefresh.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnRefresh.setFocusPainted(false);
+        btnRefresh.addActionListener(e -> loadReminderData());
+        controlPanel.add(btnRefresh);
+
+        add(controlPanel, BorderLayout.SOUTH); // Placed at the bottom for easy access
+
+        // Table Janji Temu
+        modelReminder = new DefaultTableModel(
+                new String[] { "ID Janji", "ID Pasien", "Nama Pasien", "Tanggal", "Waktu", "Status" }, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // make table non-editable
             }
+        };
+        tableReminder = new JTable(modelReminder);
+        tableReminder.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tableReminder.setRowHeight(25);
+        tableReminder.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tableReminder.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-            try (Connection conn = koneksi.getKoneksi()) {
+        JScrollPane scrollReminder = new JScrollPane(tableReminder);
+        scrollReminder.setBorder(BorderFactory.createTitledBorder("Janji Temu Mendatang"));
+        add(scrollReminder, BorderLayout.CENTER);
 
-                String query = "SELECT tanggal_janji FROM janji_temu WHERE id_pasien = ?";
-                PreparedStatement ps = conn.prepareStatement(query);
-                ps.setString(1, idPasien);
-                ResultSet rs = ps.executeQuery();
-
-                if (rs.next()) {
-                    String tanggalJanji = rs.getString("tanggal_janji"); // ← PERBAIKAN DI SINI
-                    JOptionPane.showMessageDialog(this, "Jadwal temu pasien ID " + idPasien + ": " + tanggalJanji);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Tidak ada jadwal ditemukan untuk ID Pasien " + idPasien);
-                }
-
-                rs.close();
-                ps.close();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Gagal mengambil data: " + ex.getMessage());
-            }
-        });
-
-        setVisible(true);
+        loadReminderData(); // Load data initially
     }
+
+    private void loadReminderData() {
+        modelReminder.setRowCount(0);
+        Date selectedDate = (Date) spinnerTanggal.getValue();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String dateString = sdf.format(selectedDate);
+
+        try (Connection conn = koneksi.getKoneksi();
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT jt.id_janji_temu, p.id_pasien, p.nama_pasien, jt.tanggal_janji, jt.waktu_janji, jt.status " +
+                                "FROM janji_temu jt JOIN pasien p ON jt.id_pasien = p.id_pasien " +
+                                "WHERE jt.tanggal_janji >= ? AND jt.status = 'Dijadwalkan' ORDER BY jt.tanggal_janji ASC, jt.waktu_janji ASC")) {
+
+            ps.setString(1, dateString);
+            ResultSet rs = ps.executeQuery();
+
+            boolean foundData = false;
+            while (rs.next()) {
+                foundData = true;
+                modelReminder.addRow(new Object[] {
+                        rs.getInt("id_janji_temu"),
+                        rs.getString("id_pasien"),
+                        rs.getString("nama_pasien"),
+                        rs.getDate("tanggal_janji"),
+                        rs.getTime("waktu_janji"),
+                        rs.getString("status")
+                });
+            }
+
+            if (!foundData) {
+                JOptionPane.showMessageDialog(this, "Tidak ada janji temu yang dijadwalkan dari tanggal " + dateString + " dan seterusnya.",
+                        "Informasi", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading reminder data: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    // Removed main method
 }

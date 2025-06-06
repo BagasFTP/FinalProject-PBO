@@ -10,7 +10,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class FormCekTanggal extends JPanel { // Change from JFrame to JPanel
+public class FormCekTanggal extends JPanel {
     private JSpinner spinnerTanggal;
     private JTable tableJanjiTemu;
     private JTable tableKunjungan;
@@ -18,18 +18,9 @@ public class FormCekTanggal extends JPanel { // Change from JFrame to JPanel
     private DefaultTableModel modelKunjungan;
 
     public FormCekTanggal() {
-        // Remove JFrame specific settings
-        // setTitle("Cek Pasien & Janji Berdasarkan Tanggal");
-        // setSize(900, 700);
-        // setLocationRelativeTo(null);
-        // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-        // Panel utama (this JPanel itself)
-        setLayout(new BorderLayout(10, 10)); // Apply layout to this JPanel
+        setLayout(new BorderLayout(10, 10)); 
         setBackground(Color.WHITE);
         setBorder(new EmptyBorder(10, 10, 10, 10));
-        // setContentPane(panelUtama); // No longer needed
-
         // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(52, 152, 219));

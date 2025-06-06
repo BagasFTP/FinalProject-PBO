@@ -16,16 +16,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class Statistik extends JFrame {
+public class Statistik extends JPanel {
     private JLabel lblTotalKunjungan;
     private JButton btnExport;
     private int totalKunjunganBulanIni;
 
     public Statistik() {
-        setTitle("Statistik Kunjungan");
-        setSize(450, 300);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         setLayout(new BorderLayout(10, 10));
 
@@ -70,7 +66,7 @@ public class Statistik extends JFrame {
         btnExport.addActionListener(e -> exportToPDF());
         ambilTotalKunjungan();
 
-        setVisible(true);
+        // No setVisible(true) for JPanel, as it's added to another container
     }
 
     private void ambilTotalKunjungan() {
@@ -127,9 +123,8 @@ public class Statistik extends JFrame {
 
             // Date of Report Generation
             Font dateFont = new Font(Font.HELVETICA, 12, Font.NORMAL);
-            // Corrected DateTimeFormatter pattern: "dd MMMM yyyy"
             Paragraph dateReport = new Paragraph(
-                    "Tanggal Laporan: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")),
+                    "Tanggal Laporan: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")), // Corrected pattern
                     dateFont);
             dateReport.setAlignment(Element.ALIGN_RIGHT);
             doc.add(dateReport);
@@ -227,14 +222,4 @@ public class Statistik extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "MySQL JDBC Driver not found. Please add the library.", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        SwingUtilities.invokeLater(Statistik::new);
-    }
 }

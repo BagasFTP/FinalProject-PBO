@@ -1,271 +1,407 @@
 package view;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.sql.*;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import com.lowagie.text.*;
-import com.lowagie.text.Font;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfWriter;
 import config.koneksi;
 
-public class FormRekamMedis extends JFrame {
-    private JTextField tfId, tfKeluhan, tfDiagnosa, tfTindakan, tfObat;
-    private JTextArea taCatatan, taRiwayat;
-    private JButton btnSimpan, btnLihat, btnExport;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class FormRekamMedis extends JPanel {
+    private JTextField txtIdRekamMedis;
+    private JTextField txtIdPasien;
+    private JTextField txtNamaPasien;
+    private JTextArea txtAreaDiagnosis;
+    private JTextArea txtAreaTindakan;
+    private JSpinner spinnerTanggal;
+    private JTable tableRekamMedis;
+    private DefaultTableModel modelRekamMedis;
 
     public FormRekamMedis() {
-        setTitle("Rekam Medis Pasien");
-        setSize(550, 700);
-        setLayout(null);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+        setBackground(Color.WHITE);
+        setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JLabel lblId = new JLabel("ID Pasien:");
-        tfId = new JTextField();
+        // Header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(52, 152, 219));
+        headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
+        JLabel lblJudul = new JLabel("Manajemen Rekam Medis");
+        lblJudul.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblJudul.setForeground(Color.WHITE);
+        headerPanel.add(lblJudul, BorderLayout.WEST);
+        add(headerPanel, BorderLayout.NORTH);
 
-        JLabel lblKeluhan = new JLabel("Keluhan:");
-        tfKeluhan = new JTextField();
+        // Panel input
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        inputPanel.setBackground(Color.WHITE);
+        inputPanel.setBorder(BorderFactory.createTitledBorder("Detail Rekam Medis"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel lblDiagnosa = new JLabel("Diagnosa:");
-        tfDiagnosa = new JTextField();
+        JLabel lIdRekamMedis = new JLabel("ID Rekam Medis:");
+        lIdRekamMedis.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        inputPanel.add(lIdRekamMedis, gbc);
 
-        JLabel lblTindakan = new JLabel("Tindakan:");
-        tfTindakan = new JTextField();
+        txtIdRekamMedis = new JTextField();
+        txtIdRekamMedis.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtIdRekamMedis.setEditable(false);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        inputPanel.add(txtIdRekamMedis, gbc);
 
-        JLabel lblObat = new JLabel("Obat:");
-        tfObat = new JTextField();
+        JLabel lIdPasien = new JLabel("ID Pasien:");
+        lIdPasien.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        inputPanel.add(lIdPasien, gbc);
 
-        JLabel lblCatatan = new JLabel("Catatan Tambahan:");
-        taCatatan = new JTextArea(3, 20);
-        JScrollPane scrollCatatan = new JScrollPane(taCatatan);
+        txtIdPasien = new JTextField();
+        txtIdPasien.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        // Add a button to search for patient or integrate with a patient selection
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        inputPanel.add(txtIdPasien, gbc);
 
-        btnSimpan = new JButton("Simpan Rekam");
-        btnLihat = new JButton("Lihat Rekam");
-        btnExport = new JButton("Download PDF");
+        JButton btnCariPasien = new JButton("Cari Pasien");
+        btnCariPasien.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        btnCariPasien.addActionListener(e -> findPasien());
+        gbc.gridx = 2;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        inputPanel.add(btnCariPasien, gbc);
 
-        taRiwayat = new JTextArea();
-        JScrollPane scroll = new JScrollPane(taRiwayat);
-        taRiwayat.setEditable(false);
 
-        // Layout
-        int labelW = 130, fieldW = 350, height = 25, gap = 10;
-        int y = 20;
+        JLabel lNamaPasien = new JLabel("Nama Pasien:");
+        lNamaPasien.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
+        inputPanel.add(lNamaPasien, gbc);
 
-        lblId.setBounds(30, y, labelW, height);
-        tfId.setBounds(170, y, fieldW, height);
-        y += height + gap;
+        txtNamaPasien = new JTextField();
+        txtNamaPasien.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtNamaPasien.setEditable(false);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2; // Span across 2 columns
+        gbc.weightx = 1.0;
+        inputPanel.add(txtNamaPasien, gbc);
+        gbc.gridwidth = 1; // Reset to 1
 
-        lblKeluhan.setBounds(30, y, labelW, height);
-        tfKeluhan.setBounds(170, y, fieldW, height);
-        y += height + gap;
+        JLabel lTanggal = new JLabel("Tanggal Rekam:");
+        lTanggal.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 0;
+        inputPanel.add(lTanggal, gbc);
 
-        lblDiagnosa.setBounds(30, y, labelW, height);
-        tfDiagnosa.setBounds(170, y, fieldW, height);
-        y += height + gap;
+        spinnerTanggal = new JSpinner(new SpinnerDateModel());
+        spinnerTanggal.setEditor(new JSpinner.DateEditor(spinnerTanggal, "yyyy-MM-dd"));
+        spinnerTanggal.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        inputPanel.add(spinnerTanggal, gbc);
+        gbc.gridwidth = 1;
 
-        lblTindakan.setBounds(30, y, labelW, height);
-        tfTindakan.setBounds(170, y, fieldW, height);
-        y += height + gap;
+        JLabel lDiagnosis = new JLabel("Diagnosis:");
+        lDiagnosis.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.weightx = 0;
+        gbc.anchor = GridBagConstraints.NORTHWEST; // Align label to top-left
+        inputPanel.add(lDiagnosis, gbc);
 
-        lblObat.setBounds(30, y, labelW, height);
-        tfObat.setBounds(170, y, fieldW, height);
-        y += height + gap;
+        txtAreaDiagnosis = new JTextArea(5, 20);
+        txtAreaDiagnosis.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtAreaDiagnosis.setLineWrap(true);
+        txtAreaDiagnosis.setWrapStyleWord(true);
+        JScrollPane scrollDiagnosis = new JScrollPane(txtAreaDiagnosis);
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.5; // Allow vertical growth
+        gbc.fill = GridBagConstraints.BOTH;
+        inputPanel.add(scrollDiagnosis, gbc);
+        gbc.gridwidth = 1;
+        gbc.weighty = 0; // Reset weighty
 
-        lblCatatan.setBounds(30, y, labelW, height);
-        scrollCatatan.setBounds(170, y, fieldW, 60);
-        y += 60 + gap;
+        JLabel lTindakan = new JLabel("Tindakan:");
+        lTindakan.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.weightx = 0;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        inputPanel.add(lTindakan, gbc);
 
-        btnSimpan.setBounds(30, y, 150, 30);
-        btnLihat.setBounds(190, y, 130, 30);
-        btnExport.setBounds(330, y, 170, 30);
-        y += 40;
+        txtAreaTindakan = new JTextArea(5, 20);
+        txtAreaTindakan.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtAreaTindakan.setLineWrap(true);
+        txtAreaTindakan.setWrapStyleWord(true);
+        JScrollPane scrollTindakan = new JScrollPane(txtAreaTindakan);
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.5;
+        gbc.fill = GridBagConstraints.BOTH;
+        inputPanel.add(scrollTindakan, gbc);
+        gbc.gridwidth = 1;
+        gbc.weighty = 0;
 
-        scroll.setBounds(30, y, 470, 300);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(Color.WHITE);
 
-        add(lblId);
-        add(tfId);
-        add(lblKeluhan);
-        add(tfKeluhan);
-        add(lblDiagnosa);
-        add(tfDiagnosa);
-        add(lblTindakan);
-        add(tfTindakan);
-        add(lblObat);
-        add(tfObat);
-        add(lblCatatan);
-        add(scrollCatatan);
-        add(btnSimpan);
-        add(btnLihat);
-        add(btnExport);
-        add(scroll);
+        JButton btnTambah = new JButton("Tambah");
+        btnTambah.setBackground(new Color(46, 204, 113));
+        btnTambah.setForeground(Color.WHITE);
+        btnTambah.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnTambah.setFocusPainted(false);
+        btnTambah.addActionListener(e -> addRekamMedis());
+        buttonPanel.add(btnTambah);
 
-        btnSimpan.addActionListener(e -> simpanRekam());
-        btnLihat.addActionListener(e -> tampilkanRekam());
-        btnExport.addActionListener(e -> exportPDF(null));
+        JButton btnUpdate = new JButton("Update");
+        btnUpdate.setBackground(new Color(52, 152, 219));
+        btnUpdate.setForeground(Color.WHITE);
+        btnUpdate.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnUpdate.setFocusPainted(false);
+        btnUpdate.addActionListener(e -> updateRekamMedis());
+        buttonPanel.add(btnUpdate);
 
-        setVisible(true);
+        JButton btnHapus = new JButton("Hapus");
+        btnHapus.setBackground(new Color(231, 76, 60));
+        btnHapus.setForeground(Color.WHITE);
+        btnHapus.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnHapus.setFocusPainted(false);
+        btnHapus.addActionListener(e -> deleteRekamMedis());
+        buttonPanel.add(btnHapus);
+
+        JButton btnClear = new JButton("Clear");
+        btnClear.setBackground(new Color(149, 165, 166));
+        btnClear.setForeground(Color.WHITE);
+        btnClear.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnClear.setFocusPainted(false);
+        btnClear.addActionListener(e -> clearFields());
+        buttonPanel.add(btnClear);
+
+        JPanel formPanel = new JPanel(new BorderLayout());
+        formPanel.add(inputPanel, BorderLayout.CENTER);
+        formPanel.add(buttonPanel, BorderLayout.SOUTH);
+        formPanel.setBackground(Color.WHITE);
+
+        // Tabel Rekam Medis
+        modelRekamMedis = new DefaultTableModel(
+                new String[] { "ID RM", "ID Pasien", "Nama Pasien", "Tanggal", "Diagnosis", "Tindakan" }, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // make table non-editable
+            }
+        };
+        tableRekamMedis = new JTable(modelRekamMedis);
+        tableRekamMedis.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tableRekamMedis.setRowHeight(25);
+        tableRekamMedis.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tableRekamMedis.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableRekamMedis.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && tableRekamMedis.getSelectedRow() != -1) {
+                displaySelectedRekamMedis();
+            }
+        });
+        JScrollPane scrollRekamMedis = new JScrollPane(tableRekamMedis);
+        scrollRekamMedis.setBorder(BorderFactory.createTitledBorder("Daftar Rekam Medis"));
+        scrollRekamMedis.setPreferredSize(new Dimension(850, 300));
+
+        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.add(formPanel, BorderLayout.NORTH);
+        contentPanel.add(scrollRekamMedis, BorderLayout.CENTER);
+
+        add(contentPanel, BorderLayout.CENTER);
+
+        loadRekamMedisData();
     }
 
-    private void simpanRekam() {
-        String id = tfId.getText().trim();
-        String keluhan = tfKeluhan.getText().trim();
-        String diagnosa = tfDiagnosa.getText().trim();
-        String tindakan = tfTindakan.getText().trim();
-        String obat = tfObat.getText().trim();
-        String catatan = taCatatan.getText().trim();
-
-        if (id.isEmpty() || keluhan.isEmpty() || diagnosa.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Field ID, Keluhan, dan Diagnosa wajib diisi!");
-            return;
-        }
-
-        try (Connection conn = koneksi.getKoneksi()) {
-            String sql = "INSERT INTO rekam_medis (id_pasien, tanggal, keluhan, diagnosa, tindakan, obat_yang_diberikan, catatan_tambahan) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, id);
-            ps.setDate(2, Date.valueOf(LocalDate.now()));
-            ps.setString(3, keluhan);
-            ps.setString(4, diagnosa);
-            ps.setString(5, tindakan);
-            ps.setString(6, obat);
-            ps.setString(7, catatan);
-            ps.executeUpdate();
-
-            JOptionPane.showMessageDialog(this, "Rekam medis berhasil disimpan.");
-            tfKeluhan.setText("");
-            tfDiagnosa.setText("");
-            tfTindakan.setText("");
-            tfObat.setText("");
-            taCatatan.setText("");
-            tampilkanRekam();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Gagal menyimpan rekam medis.\nError: " + e.getMessage());
+    private void findPasien() {
+        String idPasien = JOptionPane.showInputDialog(this, "Masukkan ID Pasien:", "Cari Pasien", JOptionPane.QUESTION_MESSAGE);
+        if (idPasien != null && !idPasien.trim().isEmpty()) {
+            try (Connection conn = koneksi.getKoneksi();
+                 PreparedStatement ps = conn.prepareStatement("SELECT nama_pasien FROM pasien WHERE id_pasien = ?")) {
+                ps.setString(1, idPasien);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    txtIdPasien.setText(idPasien);
+                    txtNamaPasien.setText(rs.getString("nama_pasien"));
+                } else {
+                    JOptionPane.showMessageDialog(this, "ID Pasien tidak ditemukan.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    txtIdPasien.setText("");
+                    txtNamaPasien.setText("");
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Error finding patient: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
-    private void tampilkanRekam() {
-        String id = tfId.getText().trim();
-        if (id.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Masukkan ID Pasien terlebih dahulu.");
-            return;
-        }
 
-        StringBuilder hasil = new StringBuilder();
-        try (Connection conn = koneksi.getKoneksi()) {
-            String sql = "SELECT tanggal, keluhan, diagnosa, tindakan, obat_yang_diberikan, catatan_tambahan FROM rekam_medis WHERE id_pasien = ? ORDER BY tanggal DESC";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, id);
-            ResultSet rs = ps.executeQuery();
+    private void loadRekamMedisData() {
+        modelRekamMedis.setRowCount(0);
+        try (Connection conn = koneksi.getKoneksi();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(
+                        "SELECT rm.id_rekam, p.id_pasien, p.nama_pasien, rm.tanggal, rm.diagnosa, rm.tindakan " +
+                                "FROM rekam_medis rm JOIN pasien p ON rm.id_pasien = p.id_pasien ORDER BY rm.tanggal DESC, rm.id_rekam DESC")) {
 
             while (rs.next()) {
-                hasil.append("Tanggal: ").append(rs.getDate("tanggal")).append("\n")
-                        .append("Keluhan: ").append(rs.getString("keluhan")).append("\n")
-                        .append("Diagnosa: ").append(rs.getString("diagnosa")).append("\n")
-                        .append("Tindakan: ").append(rs.getString("tindakan")).append("\n")
-                        .append("Obat: ").append(rs.getString("obat_yang_diberikan")).append("\n")
-                        .append("Catatan: ").append(rs.getString("catatan_tambahan")).append("\n")
-                        .append("------------------------------------------------\n");
+                modelRekamMedis.addRow(new Object[] {
+                        rs.getInt("id_rekam"),
+                        rs.getString("id_pasien"),
+                        rs.getString("nama_pasien"),
+                        rs.getDate("tanggal"),
+                        rs.getString("diagnosa"),
+                        rs.getString("tindakan")
+                });
             }
-
-            if (hasil.length() == 0) {
-                hasil.append("Tidak ada data rekam medis untuk ID ini.");
-            }
-
-            taRiwayat.setText(hasil.toString());
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            taRiwayat.setText("Gagal mengambil data rekam medis.");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading rekam medis data: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    /**
-     * @param e
-     */
-    private void exportPDF(Action e) {
-        String id = tfId.getText().trim();
-        if (id.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Masukkan ID Pasien terlebih dahulu.");
+    private void displaySelectedRekamMedis() {
+        int selectedRow = tableRekamMedis.getSelectedRow();
+        if (selectedRow != -1) {
+            txtIdRekamMedis.setText(modelRekamMedis.getValueAt(selectedRow, 0).toString());
+            txtIdPasien.setText(modelRekamMedis.getValueAt(selectedRow, 1).toString());
+            txtNamaPasien.setText(modelRekamMedis.getValueAt(selectedRow, 2).toString());
+            spinnerTanggal.setValue(modelRekamMedis.getValueAt(selectedRow, 3));
+            txtAreaDiagnosis.setText(modelRekamMedis.getValueAt(selectedRow, 4).toString());
+            txtAreaTindakan.setText(modelRekamMedis.getValueAt(selectedRow, 5).toString());
+        }
+    }
+
+    private void addRekamMedis() {
+        if (txtIdPasien.getText().isEmpty() || txtAreaDiagnosis.getText().isEmpty() || txtAreaTindakan.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua kolom wajib diisi kecuali ID Rekam Medis (auto-generated).", "Peringatan",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        JFileChooser chooser = new JFileChooser();
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
-        chooser.setSelectedFile(new File("RekamMedis_" + id + "_" + timestamp + ".pdf"));
+        try (Connection conn = koneksi.getKoneksi();
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO rekam_medis (id_pasien, tanggal, diagnosa, tindakan) VALUES (?, ?, ?, ?)")) {
 
-        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
-            return;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            String tanggalRekam = sdf.format((Date) spinnerTanggal.getValue());
 
-        File file = chooser.getSelectedFile();
+            ps.setString(1, txtIdPasien.getText());
+            ps.setString(2, tanggalRekam);
+            ps.setString(3, txtAreaDiagnosis.getText());
+            ps.setString(4, txtAreaTindakan.getText());
 
-        try (Connection conn = koneksi.getKoneksi()) {
-            String sql = "SELECT tanggal, keluhan, diagnosa, tindakan, obat_yang_diberikan, catatan_tambahan " +
-                    "FROM rekam_medis WHERE id_pasien = ? ORDER BY tanggal DESC";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, id);
-            ResultSet rs = ps.executeQuery();
-
-            Document doc = new Document(PageSize.A4, 36, 36, 64, 64); // padding halaman
-            PdfWriter.getInstance(doc, new FileOutputStream(file));
-            doc.open();
-
-            // Judul
-            Font fontTitle = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
-            Paragraph title = new Paragraph("Laporan Rekam Medis Pasien\nID Pasien: " + id, fontTitle);
-            title.setAlignment(Element.ALIGN_CENTER);
-            title.setSpacingAfter(20);
-            doc.add(title);
-
-            // Tabel isi rekam medis
-            String[] headers = { "Tanggal", "Keluhan", "Diagnosa", "Tindakan", "Obat Diberikan", "Catatan Tambahan" };
-            PdfPTable table = new PdfPTable(headers.length);
-            table.setWidthPercentage(100);
-            table.setSpacingBefore(10f);
-            table.setWidths(new float[] { 2f, 3f, 3f, 3f, 3f, 4f });
-
-            for (String header : headers) {
-                PdfPCell cell = new PdfPCell(new Phrase(header, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
-                cell.setBackgroundColor(new Color(230, 230, 230));
-                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-                cell.setPadding(5);
-                table.addCell(cell);
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected > 0) {
+                JOptionPane.showMessageDialog(this, "Rekam medis berhasil ditambahkan.", "Sukses",
+                        JOptionPane.INFORMATION_MESSAGE);
+                loadRekamMedisData(); // Refresh table
+                clearFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menambahkan rekam medis.", "Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
-
-            Font fontData = FontFactory.getFont(FontFactory.HELVETICA, 10);
-            while (rs.next()) {
-                table.addCell(new PdfPCell(new Phrase(rs.getString("tanggal"), fontData)));
-                table.addCell(new PdfPCell(new Phrase(rs.getString("keluhan"), fontData)));
-                table.addCell(new PdfPCell(new Phrase(rs.getString("diagnosa"), fontData)));
-                table.addCell(new PdfPCell(new Phrase(rs.getString("tindakan"), fontData)));
-                table.addCell(new PdfPCell(new Phrase(rs.getString("obat_yang_diberikan"), fontData)));
-                table.addCell(new PdfPCell(new Phrase(rs.getString("catatan_tambahan"), fontData)));
-            }
-
-            doc.add(table);
-
-            // Footer
-            Font footerFont = new Font(Font.HELVETICA, 10, Font.ITALIC, Color.GRAY);
-            Paragraph footer = new Paragraph("Generated by Aplikasi Klinik - " +
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")), footerFont);
-            footer.setAlignment(Element.ALIGN_RIGHT);
-            doc.add(footer);
-
-            doc.close();
-            JOptionPane.showMessageDialog(this, "PDF berhasil disimpan:\n" + file.getAbsolutePath());
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Gagal ekspor PDF: " + ex.getMessage());
-            ex.printStackTrace();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error adding rekam medis: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void updateRekamMedis() {
+        if (txtIdRekamMedis.getText().isEmpty() || txtIdPasien.getText().isEmpty() || txtAreaDiagnosis.getText().isEmpty() || txtAreaTindakan.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Pilih rekam medis yang akan diupdate dari tabel dan lengkapi semua kolom.", "Peringatan",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try (Connection conn = koneksi.getKoneksi();
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE rekam_medis SET id_pasien = ?, tanggal = ?, diagnosa = ?, tindakan = ? WHERE id_rekam = ?")) {
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            String tanggalRekam = sdf.format((Date) spinnerTanggal.getValue());
+
+            ps.setString(1, txtIdPasien.getText());
+            ps.setString(2, tanggalRekam);
+            ps.setString(3, txtAreaDiagnosis.getText());
+            ps.setString(4, txtAreaTindakan.getText());
+            ps.setInt(5, Integer.parseInt(txtIdRekamMedis.getText()));
+
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected > 0) {
+                JOptionPane.showMessageDialog(this, "Rekam medis berhasil diupdate.", "Sukses",
+                        JOptionPane.INFORMATION_MESSAGE);
+                loadRekamMedisData(); // Refresh table
+                clearFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal mengupdate rekam medis.", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error updating rekam medis: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void deleteRekamMedis() {
+        if (txtIdRekamMedis.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Pilih rekam medis yang akan dihapus dari tabel.", "Peringatan",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Anda yakin ingin menghapus rekam medis ini?", "Konfirmasi Hapus",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try (Connection conn = koneksi.getKoneksi();
+                    PreparedStatement ps = conn.prepareStatement("DELETE FROM rekam_medis WHERE id_rekam = ?")) {
+
+                ps.setInt(1, Integer.parseInt(txtIdRekamMedis.getText()));
+
+                int rowsAffected = ps.executeUpdate();
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(this, "Rekam medis berhasil dihapus.", "Sukses",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    loadRekamMedisData(); // Refresh table
+                    clearFields();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Gagal menghapus rekam medis.", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Error deleting rekam medis: " + ex.getMessage(),
+                        "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void clearFields() {
+        txtIdRekamMedis.setText("");
+        txtIdPasien.setText("");
+        txtNamaPasien.setText("");
+        txtAreaDiagnosis.setText("");
+        txtAreaTindakan.setText("");
+        spinnerTanggal.setValue(new Date()); // Reset to current date
+        tableRekamMedis.clearSelection();
     }
 }
