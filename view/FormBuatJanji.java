@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import config.koneksi;
+import controller.JanjiController;
 
 public class FormBuatJanji extends JPanel {
     private JTextField tfIdPasien;
@@ -22,7 +23,6 @@ public class FormBuatJanji extends JPanel {
     private JPopupMenu suggestionPopup;
 
     public FormBuatJanji() {
-        
         setLayout(new BorderLayout(10, 10));
         setBackground(Color.WHITE);
 
@@ -36,277 +36,228 @@ public class FormBuatJanji extends JPanel {
     private JPanel buatHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(41, 128, 185));
-        header.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        header.setPreferredSize(new Dimension(0, 60)); // Set tinggi tetap, lebar akan disesuaikan parent
 
-        JLabel lblTitle = new JLabel("Buat Janji Temu");
-        lblTitle.setForeground(Color.WHITE);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        JLabel title = new JLabel("  ➕ Buat Janji Temu Baru");
+        title.setFont(new Font("SansSerif", Font.BOLD, 20));
+        title.setForeground(Color.WHITE);
 
-        header.add(lblTitle, BorderLayout.WEST);
+        header.add(title, BorderLayout.WEST);
         return header;
     }
 
     private JPanel buatFormInput() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(245, 245, 245));
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200)),
-                "Input Data Janji",
-                0, 0,
-                new Font("Segoe UI", Font.BOLD, 14),
-                Color.DARK_GRAY));
-
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        formPanel.setBackground(Color.WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 15, 10, 15);
+        gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // ID Pasien
-        JLabel lId = new JLabel("ID Pasien:");
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        formPanel.add(new JLabel("ID Pasien:"), gbc);
+        gbc.gridx = 1;
         tfIdPasien = new JTextField(20);
+        formPanel.add(tfIdPasien, gbc);
+
+        // Auto-suggestion for ID Pasien
+        setupIdPasienAutoSuggest();
 
         // Tanggal Janji
-        JLabel lTanggal = new JLabel("Tanggal Janji:");
-        SpinnerDateModel dateModel = new SpinnerDateModel();
-        dateSpinner = new JSpinner(dateModel);
-        dateSpinner.setEditor(new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd"));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        formPanel.add(new JLabel("Tanggal Janji:"), gbc);
+        gbc.gridx = 1;
+        dateSpinner = new JSpinner(new SpinnerDateModel());
+        // Change the date format to only show date
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd"); // Simplified date format
+        dateSpinner.setEditor(dateEditor);
+        formPanel.add(dateSpinner, gbc);
 
-        // Jam Janji
-        JLabel lJam = new JLabel("Jam Janji:");
-        SpinnerDateModel timeModel = new SpinnerDateModel();
-        timeSpinner = new JSpinner(timeModel);
-        timeSpinner.setEditor(new JSpinner.DateEditor(timeSpinner, "HH:mm"));
-        
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 9);
-        cal.set(java.util.Calendar.MINUTE, 0);
-        cal.set(java.util.Calendar.SECOND, 0);
-        timeSpinner.setValue(cal.getTime());
+        // Waktu Janji
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        formPanel.add(new JLabel("Waktu Janji:"), gbc);
+        gbc.gridx = 1;
+        timeSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm");
+        timeSpinner.setEditor(timeEditor);
+        formPanel.add(timeSpinner, gbc);
 
-        btnSimpan = new JButton("Simpan");
-        btnSimpan.setBackground(new Color(41, 128, 185));
+        // Tombol Simpan
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.EAST;
+        btnSimpan = new JButton("Simpan Janji");
+        btnSimpan.setBackground(new Color(46, 204, 113));
         btnSimpan.setForeground(Color.WHITE);
-        btnSimpan.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnSimpan.setFocusPainted(false);
-        btnSimpan.setPreferredSize(new Dimension(120, 35));
-        btnSimpan.addActionListener(e -> simpanJanji());
+        btnSimpan.addActionListener(e -> simpanJanjiBaru());
+        formPanel.add(btnSimpan, gbc);
 
-        // Autocomplete
-        suggestionPopup = new JPopupMenu();
-        tfIdPasien.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { showSuggestions(); }
-            public void removeUpdate(DocumentEvent e) { showSuggestions(); }
-            public void changedUpdate(DocumentEvent e) { }
-        });
-
-        // Layout components
-        gbc.gridx = 0; gbc.gridy = 0; panel.add(lId, gbc);
-        gbc.gridx = 1; panel.add(tfIdPasien, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; panel.add(lTanggal, gbc);
-        gbc.gridx = 1; panel.add(dateSpinner, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; panel.add(lJam, gbc);
-        gbc.gridx = 1; panel.add(timeSpinner, gbc);
-        gbc.gridx = 1; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST; panel.add(btnSimpan, gbc);
-
-        return panel;
+        return formPanel;
     }
 
     private JScrollPane buatTabelJanji() {
-        tableModel = new DefaultTableModel(new String[] { "ID Pasien", "Nama Pasien", "Tanggal Janji", "Jam Janji", "Status" }, 0) { //
+        tableModel = new DefaultTableModel(
+                new Object[][]{},
+                new String[]{"ID Janji", "ID Pasien", "Nama Pasien", "Tanggal Janji", "Waktu Janji", "Status"}
+        ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; //
+                return false;
             }
         };
-        
         tableJanji = new JTable(tableModel);
-        tableJanji.setRowHeight(25); //
-        tableJanji.setFont(new Font("Segoe UI", Font.PLAIN, 12)); //
-        tableJanji.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12)); //
+        tableJanji.getTableHeader().setReorderingAllowed(false);
+        tableJanji.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tableJanji.setRowHeight(25);
+        tableJanji.getTableHeader().setBackground(new Color(52, 152, 219));
+        tableJanji.getTableHeader().setForeground(Color.WHITE);
+        tableJanji.setFillsViewportHeight(true);
 
-        tableJanji.getColumnModel().getColumn(0).setPreferredWidth(80); //
-        tableJanji.getColumnModel().getColumn(1).setPreferredWidth(150); //
-        tableJanji.getColumnModel().getColumn(2).setPreferredWidth(100); //
-        tableJanji.getColumnModel().getColumn(3).setPreferredWidth(80); //
-        tableJanji.getColumnModel().getColumn(4).setPreferredWidth(100); //
-
-        JScrollPane scrollPane = new JScrollPane(tableJanji);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Daftar Janji Temu")); //
-        scrollPane.setPreferredSize(new Dimension(600, 250)); //
-        return scrollPane;
+        return new JScrollPane(tableJanji);
     }
 
-    private void simpanJanji() {
-        String idPasien = tfIdPasien.getText().trim();
-        Date selectedDate = (Date) dateSpinner.getValue();
-        Date selectedTime = (Date) timeSpinner.getValue();
+    private void loadJanji() {
+        tableModel.setRowCount(0);
+        String sql = """
+            SELECT
+                jt.id_janji_temu,
+                jt.id_pasien,
+                p.nama_pasien,
+                jt.tanggal_janji,
+                jt.waktu_janji,
+                jt.status
+            FROM janji_temu jt
+            JOIN pasien p ON jt.id_pasien = p.id_pasien
+            ORDER BY jt.tanggal_janji DESC, jt.waktu_janji DESC
+        """;
+        try (Connection conn = koneksi.getKoneksi();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
-        if (idPasien.isEmpty() || selectedDate == null || selectedTime == null) { //
-            JOptionPane.showMessageDialog(this, "Isi semua field: ID Pasien, tanggal janji, dan jam janji.", "Validasi",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            while (rs.next()) {
+                // Pastikan tidak ada nilai null yang langsung dipanggil toString()
+                Object idJanji = rs.getObject("id_janji_temu"); // Gunakan getObject untuk tipe int, mungkin null
+                String idPasien = rs.getString("id_pasien");
+                String namaPasien = rs.getString("nama_pasien");
+                Date tanggalJanji = rs.getDate("tanggal_janji");
+                Time waktuJanji = rs.getTime("waktu_janji"); // Menggunakan Time untuk waktu
+                String status = rs.getString("status");
 
-        if (!cekPasienAda(idPasien)) { //
-            JOptionPane.showMessageDialog(this, "ID Pasien tidak ditemukan di database!", "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        String tanggalJanji = new SimpleDateFormat("yyyy-MM-dd").format(selectedDate); //
-        String jamJanji = new SimpleDateFormat("HH:mm:ss").format(selectedTime); //
-
-        try {
-            simpanJanjiTemu(idPasien, tanggalJanji, jamJanji); //
-            JOptionPane.showMessageDialog(this, "Janji temu berhasil disimpan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
-            
-            resetForm(); // Memanggil method resetForm
-            loadJanji(); //
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Gagal menyimpan janji: " + ex.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                tableModel.addRow(new Object[]{
+                    idJanji != null ? idJanji : "", // Tangani null
+                    idPasien != null ? idPasien : "",
+                    namaPasien != null ? namaPasien : "",
+                    tanggalJanji, // Date dan Time bisa langsung ditambahkan, JTable akan memanggil toString()
+                    waktuJanji,
+                    status != null ? status : ""
+                });
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading janji temu data: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
     }
 
-    private void simpanJanjiTemu(String idPasien, String tanggalJanji, String jamJanji) throws SQLException {
-        Connection conn = null;
-        PreparedStatement pstJanji = null;
-        PreparedStatement pstJanjiTemu = null;
-        
+    private void simpanJanjiBaru() {
+        String idPasien = tfIdPasien.getText().trim();
+        Date tanggalJanjiDate = (Date) dateSpinner.getValue();
+        Date waktuJanjiDate = (Date) timeSpinner.getValue();
+
+        if (idPasien.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "ID Pasien tidak boleh kosong!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+
+        String tanggalJanjiStr = dateFormat.format(tanggalJanjiDate);
+        String waktuJanjiStr = timeFormat.format(waktuJanjiDate);
+
         try {
-            conn = koneksi.getKoneksi(); //
-            conn.setAutoCommit(false); //
-            
-            String sqlCek = "SELECT COUNT(*) FROM janji_temu WHERE id_pasien = ? AND tanggal_janji = ? AND status = 'scheduled'"; //
-            try (PreparedStatement pstCek = conn.prepareStatement(sqlCek)) {
-                pstCek.setString(1, idPasien);
-                pstCek.setString(2, tanggalJanji);
-                ResultSet rs = pstCek.executeQuery();
-                if (rs.next() && rs.getInt(1) > 0) { //
-                    throw new SQLException("Pasien sudah memiliki janji di tanggal tersebut"); //
-                }
+            String namaPasien = JanjiController.getNamaPasien(idPasien);
+            if (namaPasien == null) {
+                JOptionPane.showMessageDialog(this, "ID Pasien tidak ditemukan.", "Validasi", JOptionPane.WARNING_MESSAGE);
+                return;
             }
-            
-            String sqlJanji = "INSERT INTO janji (id_pasien, tanggal_janji, status) VALUES (?, ?, 'active')"; //
-            pstJanji = conn.prepareStatement(sqlJanji);
-            pstJanji.setString(1, idPasien);
-            pstJanji.setString(2, tanggalJanji);
-            pstJanji.executeUpdate(); //
-            
-            String sqlJanjiTemu = "INSERT INTO janji_temu (id_pasien, tanggal_janji, waktu_janji, status, keterangan) VALUES (?, ?, ?, 'scheduled', 'Janji temu reguler')"; //
-            pstJanjiTemu = conn.prepareStatement(sqlJanjiTemu);
-            pstJanjiTemu.setString(1, idPasien);
-            pstJanjiTemu.setString(2, tanggalJanji);
-            pstJanjiTemu.setString(3, jamJanji);
-            pstJanjiTemu.executeUpdate(); //
-            
-            conn.commit(); //
-            
-        } catch (SQLException e) {
-            if (conn != null) conn.rollback(); //
-            throw e; //
-        } finally {
-            if (pstJanjiTemu != null) pstJanjiTemu.close();
-            if (pstJanji != null) pstJanji.close();
-            if (conn != null) {
-                conn.setAutoCommit(true);
-                conn.close();
-            }
+
+            JanjiController.simpanJanji(idPasien, tanggalJanjiStr, waktuJanjiStr);
+            JOptionPane.showMessageDialog(this, "Janji temu berhasil disimpan untuk pasien " + namaPasien + ".", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            loadJanji();
+            tfIdPasien.setText("");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Gagal menyimpan janji temu: " + ex.getMessage(), "Error Database", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
-    private void resetForm() {
-        tfIdPasien.setText(""); //
-        dateSpinner.setValue(new Date()); //
-        
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 9); //
-        cal.set(java.util.Calendar.MINUTE, 0); //
-        cal.set(java.util.Calendar.SECOND, 0); //
-        timeSpinner.setValue(cal.getTime()); //
-    }
-
-    private void loadJanji() {
-        tableModel.setRowCount(0); //
-        try (Connection conn = koneksi.getKoneksi()) {
-            String sql = """
-                SELECT jt.id_pasien, p.nama_pasien, jt.tanggal_janji, 
-                       COALESCE(jt.waktu_janji, '00:00:00') as waktu_janji, jt.status
-                FROM janji_temu jt 
-                JOIN pasien p ON jt.id_pasien = p.id_pasien 
-                ORDER BY jt.tanggal_janji DESC, jt.waktu_janji ASC
-                """; //
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-
-            while (rs.next()) {
-                String waktuJanji = rs.getString("waktu_janji");
-                if (waktuJanji != null && waktuJanji.length() > 5) { //
-                    waktuJanji = waktuJanji.substring(0, 5); //
-                }
-                
-                Object[] row = {
-                        rs.getString("id_pasien"),
-                        rs.getString("nama_pasien"),
-                        rs.getString("tanggal_janji"),
-                        waktuJanji != null ? waktuJanji : "-",
-                        rs.getString("status")
-                }; //
-                tableModel.addRow(row);
+    private void setupIdPasienAutoSuggest() {
+        suggestionPopup = new JPopupMenu();
+        tfIdPasien.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                showSuggestions();
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat data janji: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 
-    private boolean cekPasienAda(String idPasien) {
-        try (Connection conn = koneksi.getKoneksi()) {
-            PreparedStatement pst = conn.prepareStatement("SELECT COUNT(*) FROM pasien WHERE id_pasien = ?"); //
-            pst.setString(1, idPasien);
-            ResultSet rs = pst.executeQuery();
-            return rs.next() && rs.getInt(1) > 0; //
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                showSuggestions();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                // Not used for plain text documents
+            }
+        });
+
+        tfIdPasien.addActionListener(e -> {
+            if (suggestionPopup.isVisible()) {
+                suggestionPopup.setVisible(false);
+            }
+        });
     }
 
     private void showSuggestions() {
-        SwingUtilities.invokeLater(() -> {
-            suggestionPopup.setVisible(false);
-            suggestionPopup.removeAll();
+        suggestionPopup.setVisible(false);
+        suggestionPopup.removeAll();
 
-            String text = tfIdPasien.getText().trim();
-            if (text.isEmpty()) return;
+        String text = tfIdPasien.getText().trim();
+        if (text.isEmpty())
+            return;
 
-            ArrayList<String> suggestions = new ArrayList<>();
-            try (Connection conn = koneksi.getKoneksi()) {
-                PreparedStatement pst = conn.prepareStatement(
-                        "SELECT id_pasien, nama_pasien FROM pasien WHERE id_pasien LIKE ? OR nama_pasien LIKE ? LIMIT 10"); //
-                pst.setString(1, "%" + text + "%");
-                pst.setString(2, "%" + text + "%");
-                ResultSet rs = pst.executeQuery();
+        ArrayList<String> suggestions = new ArrayList<>();
+        try (Connection conn = koneksi.getKoneksi()) {
+            PreparedStatement pst = conn.prepareStatement(
+                    "SELECT id_pasien, nama_pasien FROM pasien WHERE id_pasien LIKE ? OR nama_pasien LIKE ? LIMIT 10");
+            pst.setString(1, "%" + text + "%");
+            pst.setString(2, "%" + text + "%");
+            ResultSet rs = pst.executeQuery();
 
-                while (rs.next()) {
-                    suggestions.add(rs.getString("id_pasien") + " - " + rs.getString("nama_pasien")); //
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            while (rs.next()) {
+                suggestions.add(rs.getString("id_pasien") + " - " + rs.getString("nama_pasien"));
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
-            if (!suggestions.isEmpty()) {
-                for (String s : suggestions) {
-                    JMenuItem item = new JMenuItem(s);
-                    item.addActionListener(e -> {
-                        String[] parts = s.split(" - "); //
-                        tfIdPasien.setText(parts[0]); //
-                        suggestionPopup.setVisible(false);
-                    });
-                    suggestionPopup.add(item);
-                }
-                suggestionPopup.show(tfIdPasien, 0, tfIdPasien.getHeight()); //
+        if (!suggestions.isEmpty()) {
+            for (String s : suggestions) {
+                JMenuItem item = new JMenuItem(s);
+                item.addActionListener(e -> {
+                    String[] parts = s.split(" - ");
+                    tfIdPasien.setText(parts[0]);
+                    suggestionPopup.setVisible(false);
+                });
+                suggestionPopup.add(item);
             }
-        });
+            suggestionPopup.show(tfIdPasien, 0, tfIdPasien.getHeight());
+        }
     }
 }

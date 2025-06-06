@@ -260,7 +260,7 @@ public class FormRekamMedis extends JPanel {
         try (Connection conn = koneksi.getKoneksi();
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(
-                        "SELECT rm.id_rekam, p.id_pasien, p.nama_pasien, rm.tanggal, rm.diagnosa, rm.tindakan " +
+                        "SELECT rm.id_rekam, p.id_pasien, p.nama_pasien, rm.tanggal, rm.diagnosis, rm.tindakan " + // Changed 'diagnosa' to 'diagnosis'
                                 "FROM rekam_medis rm JOIN pasien p ON rm.id_pasien = p.id_pasien ORDER BY rm.tanggal DESC, rm.id_rekam DESC")) {
 
             while (rs.next()) {
@@ -269,7 +269,7 @@ public class FormRekamMedis extends JPanel {
                         rs.getString("id_pasien"),
                         rs.getString("nama_pasien"),
                         rs.getDate("tanggal"),
-                        rs.getString("diagnosa"),
+                        rs.getString("diagnosis"), // Changed 'diagnosa' to 'diagnosis'
                         rs.getString("tindakan")
                 });
             }
@@ -300,7 +300,7 @@ public class FormRekamMedis extends JPanel {
 
         try (Connection conn = koneksi.getKoneksi();
                 PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO rekam_medis (id_pasien, tanggal, diagnosa, tindakan) VALUES (?, ?, ?, ?)")) {
+                        "INSERT INTO rekam_medis (id_pasien, tanggal, diagnosis, tindakan) VALUES (?, ?, ?, ?)")) { // Changed 'diagnosa' to 'diagnosis'
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             String tanggalRekam = sdf.format((Date) spinnerTanggal.getValue());
@@ -335,7 +335,7 @@ public class FormRekamMedis extends JPanel {
 
         try (Connection conn = koneksi.getKoneksi();
                 PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE rekam_medis SET id_pasien = ?, tanggal = ?, diagnosa = ?, tindakan = ? WHERE id_rekam = ?")) {
+                        "UPDATE rekam_medis SET id_pasien = ?, tanggal = ?, diagnosis = ?, tindakan = ? WHERE id_rekam = ?")) { // Changed 'diagnosa' to 'diagnosis'
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             String tanggalRekam = sdf.format((Date) spinnerTanggal.getValue());
