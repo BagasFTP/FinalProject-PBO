@@ -94,13 +94,10 @@ public class MainApp extends JFrame {
         add(panelTengah, BorderLayout.CENTER);
     }
 
-    // Letakkan ini di dalam kelas MainApp.java
-
     private void bukaForm(int index) {
         try {
-            // Bersihkan konten sebelumnya di panelTengah dan siapkan untuk panel baru
             panelTengah.removeAll();
-            panelTengah.setLayout(new BorderLayout()); 
+            panelTengah.setLayout(new BorderLayout());
 
             switch (index) {
                 case 0 -> {
@@ -108,11 +105,13 @@ public class MainApp extends JFrame {
                     panelTengah.add(panelPasien, BorderLayout.CENTER);
                 }
                 case 1 -> {
-                    // Perubahan di sini: Tampilkan FormAntrian sebagai panel
                     FormAntrian formAntrian = new FormAntrian();
                     panelTengah.add(formAntrian, BorderLayout.CENTER);
                 }
-                case 2 -> safeOpen(() -> new FormBuatJanji(), "Form Buat Janji");
+                case 2 -> {
+                    FormBuatJanji formBuatJanji = new FormBuatJanji();
+                    panelTengah.add(formBuatJanji, BorderLayout.CENTER);
+                }
                 case 3 -> safeOpen(() -> new FormEditJanji(), "Form Edit Janji");
                 case 4 -> safeOpen(() -> new FormReminder(), "Form Reminder");
                 case 5 -> safeOpen(() -> new Statistik(), "Form Statistik");
@@ -121,8 +120,8 @@ public class MainApp extends JFrame {
                 case 8 -> safeOpen(() -> new FormRekamMedis(), "Form Rekam Medis");
                 default -> showMessage("Fitur belum tersedia.");
             }
-            
-            // Perbarui UI setelah menambahkan komponen baru
+
+            // Perbarui tampilan UI
             panelTengah.revalidate();
             panelTengah.repaint();
 

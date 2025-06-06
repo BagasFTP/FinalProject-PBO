@@ -7,13 +7,12 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class FormAntrian extends JPanel { // <- Perubahan 1: extends JPanel
+public class FormAntrian extends JPanel {
     private JTable tableAntrian;
     private DefaultTableModel tableModel;
     private JButton btnTambah, btnRefresh, btnSelesai;
 
     public FormAntrian() {
-        // Kode spesifik JFrame dihapus: setTitle, setSize, setDefaultCloseOperation, dll.
         setLayout(new BorderLayout());
 
         add(buatHeader(), BorderLayout.NORTH);
@@ -21,7 +20,6 @@ public class FormAntrian extends JPanel { // <- Perubahan 1: extends JPanel
         add(buatPanelTombol(), BorderLayout.SOUTH);
 
         refreshAntrian();
-        // setVisible(true) dihapus karena panel akan ditampilkan oleh container induknya
     }
 
     private JPanel buatHeader() {
