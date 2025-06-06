@@ -7,16 +7,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class FormAntrian extends JFrame {
+public class FormAntrian extends JPanel { // <- Perubahan 1: extends JPanel
     private JTable tableAntrian;
     private DefaultTableModel tableModel;
     private JButton btnTambah, btnRefresh, btnSelesai;
 
     public FormAntrian() {
-        setTitle("Antrian Pasien");
-        setSize(700, 500);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        // Kode spesifik JFrame dihapus: setTitle, setSize, setDefaultCloseOperation, dll.
         setLayout(new BorderLayout());
 
         add(buatHeader(), BorderLayout.NORTH);
@@ -24,7 +21,7 @@ public class FormAntrian extends JFrame {
         add(buatPanelTombol(), BorderLayout.SOUTH);
 
         refreshAntrian();
-        setVisible(true);
+        // setVisible(true) dihapus karena panel akan ditampilkan oleh container induknya
     }
 
     private JPanel buatHeader() {
@@ -45,7 +42,7 @@ public class FormAntrian extends JFrame {
         tableModel = new DefaultTableModel(kolom, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // semua sel tidak bisa diedit
+                return false;
             }
         };
 
@@ -54,13 +51,12 @@ public class FormAntrian extends JFrame {
         tableAntrian.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         tableAntrian.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         
-        // Set column widths
-        tableAntrian.getColumnModel().getColumn(0).setPreferredWidth(50);  // No
-        tableAntrian.getColumnModel().getColumn(1).setPreferredWidth(80);  // ID Janji
-        tableAntrian.getColumnModel().getColumn(2).setPreferredWidth(80);  // ID Pasien
-        tableAntrian.getColumnModel().getColumn(3).setPreferredWidth(150); // Nama Pasien
-        tableAntrian.getColumnModel().getColumn(4).setPreferredWidth(120); // Tanggal
-        tableAntrian.getColumnModel().getColumn(5).setPreferredWidth(80);  // Status
+        tableAntrian.getColumnModel().getColumn(0).setPreferredWidth(50);
+        tableAntrian.getColumnModel().getColumn(1).setPreferredWidth(80);
+        tableAntrian.getColumnModel().getColumn(2).setPreferredWidth(80);
+        tableAntrian.getColumnModel().getColumn(3).setPreferredWidth(150);
+        tableAntrian.getColumnModel().getColumn(4).setPreferredWidth(120);
+        tableAntrian.getColumnModel().getColumn(5).setPreferredWidth(80);
 
         JScrollPane scrollPane = new JScrollPane(tableAntrian);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Data Antrian"));
@@ -90,7 +86,6 @@ public class FormAntrian extends JFrame {
         panel.add(btnRefresh);
         panel.add(btnSelesai);
 
-        // Action listeners
         btnTambah.addActionListener(e -> tambahAntrian());
         btnRefresh.addActionListener(e -> refreshAntrian());
         btnSelesai.addActionListener(e -> selesaikanAntrian());
@@ -99,7 +94,6 @@ public class FormAntrian extends JFrame {
     }
 
     private void tambahAntrian() {
-        // Dialog untuk input ID Pasien
         String idPasien = JOptionPane.showInputDialog(this, 
             "Masukkan ID Pasien:", 
             "Tambah Antrian", 
@@ -107,7 +101,6 @@ public class FormAntrian extends JFrame {
             
         if (idPasien != null && !idPasien.trim().isEmpty()) {
             try {
-                // Validasi apakah pasien ada
                 if (!AntrianController.cekPasienAda(idPasien.trim())) {
                     JOptionPane.showMessageDialog(this, 
                         "ID Pasien tidak ditemukan di database!", 
@@ -137,29 +130,13 @@ public class FormAntrian extends JFrame {
         try {
             List<String[]> daftar = AntrianController.getDaftarAntrian();
             
-            if (daftar.isEmpty()) {
-                // Tampilkan pesan jika tidak ada data
-                JLabel lblKosong = new JLabel("Tidak ada data antrian", JLabel.CENTER);
-                lblKosong.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-                lblKosong.setForeground(Color.GRAY);
-                // Bisa menambahkan label ini ke panel jika diperlukan
-            }
-            
             for (int i = 0; i < daftar.size(); i++) {
                 String[] row = daftar.get(i); 
-                // Format: [id_janji, id_pasien, nama_pasien, tanggal_antrian, status]
                 tableModel.addRow(new Object[] {
-                    i + 1,           // No urut
-                    row[0],          // ID Janji
-                    row[1],          // ID Pasien  
-                    row[2],          // Nama Pasien
-                    row[3],          // Tanggal Antrian
-                    row[4]           // Status
+                    i + 1, row[0], row[1], row[2], row[3], row[4]
                 });
             }
-            
-            // Update status bar atau label info
-            setTitle("Antrian Pasien - Total: " + daftar.size() + " antrian");
+            // <- Perubahan 2: Baris setTitle(...) dihapus dari sini.
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -167,22 +144,13 @@ public class FormAntrian extends JFrame {
                 "Gagal memuat data antrian: " + e.getMessage(), 
                 "Error Database", 
                 JOptionPane.ERROR_MESSAGE);
-                
-            // Log error untuk debugging
-            System.err.println("Error saat refresh antrian:");
-            System.err.println("Message: " + e.getMessage());
-            if (e.getCause() != null) {
-                System.err.println("Cause: " + e.getCause().getMessage());
-            }
+            System.err.println("Error saat refresh antrian: " + e.getMessage());
         }
     }
 
     private void selesaikanAntrian() {
-        // Ambil data dari baris yang dipilih
         int selectedRow = tableAntrian.getSelectedRow();
-        
         if (selectedRow == -1) {
-            // Jika tidak ada baris yang dipilih, minta input manual
             String idPasien = JOptionPane.showInputDialog(this, 
                 "Masukkan ID Pasien yang akan diselesaikan:", 
                 "Selesaikan Antrian", 
@@ -191,11 +159,8 @@ public class FormAntrian extends JFrame {
             if (idPasien == null || idPasien.trim().isEmpty()) {
                 return;
             }
-            
             prosesSelesaikanAntrian(idPasien.trim());
-            
         } else {
-            // Ambil data dari baris yang dipilih
             String idJanji = tableModel.getValueAt(selectedRow, 1).toString();
             String idPasien = tableModel.getValueAt(selectedRow, 2).toString();
             String namaPasien = tableModel.getValueAt(selectedRow, 3).toString();
@@ -234,11 +199,10 @@ public class FormAntrian extends JFrame {
             String idJanji = null;
             String namaPasien = null;
             
-            // Cari data pasien di antrian
             for (String[] row : daftar) {
-                if (row[1].equals(idPasien)) { // row[1] adalah id_pasien
-                    idJanji = row[0]; // row[0] adalah id_janji
-                    namaPasien = row[2]; // row[2] adalah nama_pasien
+                if (row[1].equals(idPasien)) {
+                    idJanji = row[0];
+                    namaPasien = row[2];
                     break;
                 }
             }
