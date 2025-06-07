@@ -15,13 +15,4 @@ public class koneksi {
         }
         return conn;
     }
-
-    public static void main(String[] args) {
-        Connection c = getKoneksi();
-        if (c != null) {
-            System.out.println("Koneksi Berhasil");
-        } else {
-            System.out.println("Koneksi Gagal");
-        }
-    }
 }

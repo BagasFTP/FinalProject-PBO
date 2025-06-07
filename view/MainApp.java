@@ -125,8 +125,8 @@ public class MainApp extends JFrame {
                     panelTengah.add(statistik, BorderLayout.CENTER);
                 }
                 case 6 -> {
-                    FormExportPDF formExportPDF = new FormExportPDF(); 
-                    panelTengah.add(formExportPDF, BorderLayout.CENTER);
+                    FormExportLaporan formExportLaporan = new FormExportLaporan(); 
+                    panelTengah.add(formExportLaporan, BorderLayout.CENTER);
                 }
                 case 7 -> {
                     FormCekTanggal formCekTanggal = new FormCekTanggal(); 
