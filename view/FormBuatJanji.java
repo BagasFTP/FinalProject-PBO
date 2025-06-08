@@ -9,6 +9,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
 import config.koneksi;
 import controller.JanjiController;
 
@@ -24,26 +25,27 @@ public class FormBuatJanji extends JPanel {
     public FormBuatJanji() {
         setLayout(new BorderLayout(10, 10));
         setBackground(Color.WHITE);
+
         add(buatHeader(), BorderLayout.NORTH);
         add(buatFormInput(), BorderLayout.CENTER);
         add(buatTabelJanji(), BorderLayout.SOUTH);
+
         loadJanji();
     }
 
-    // Header panel
     private JPanel buatHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(41, 128, 185));
-        header.setPreferredSize(new Dimension(0, 60));
+        header.setPreferredSize(new Dimension(0, 60)); // Set tinggi tetap, lebar akan disesuaikan parent
 
         JLabel title = new JLabel("  ➕ Buat Janji Temu Baru");
         title.setFont(new Font("SansSerif", Font.BOLD, 20));
         title.setForeground(Color.WHITE);
+
         header.add(title, BorderLayout.WEST);
         return header;
     }
 
-    // Input form
     private JPanel buatFormInput() {
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -69,7 +71,8 @@ public class FormBuatJanji extends JPanel {
         formPanel.add(new JLabel("Tanggal Janji:"), gbc);
         gbc.gridx = 1;
         dateSpinner = new JSpinner(new SpinnerDateModel());
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
+        // Change the date format to only show date
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd"); // Simplified date format
         dateSpinner.setEditor(dateEditor);
         formPanel.add(dateSpinner, gbc);
 
@@ -96,7 +99,6 @@ public class FormBuatJanji extends JPanel {
         return formPanel;
     }
 
-    // Table for appointments
     private JScrollPane buatTabelJanji() {
         tableModel = new DefaultTableModel(
                 new Object[][]{},
@@ -114,10 +116,10 @@ public class FormBuatJanji extends JPanel {
         tableJanji.getTableHeader().setBackground(new Color(52, 152, 219));
         tableJanji.getTableHeader().setForeground(Color.WHITE);
         tableJanji.setFillsViewportHeight(true);
+
         return new JScrollPane(tableJanji);
     }
 
-    // Load appointment data into the table
     private void loadJanji() {
         tableModel.setRowCount(0);
         String sql = """
@@ -135,21 +137,23 @@ public class FormBuatJanji extends JPanel {
         try (Connection conn = koneksi.getKoneksi();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
+
             while (rs.next()) {
-                Object idJanji = rs.getObject("id_janji_temu");
+                // Pastikan tidak ada nilai null yang langsung dipanggil toString()
+                Object idJanji = rs.getObject("id_janji_temu"); // Gunakan getObject untuk tipe int, mungkin null
                 String idPasien = rs.getString("id_pasien");
                 String namaPasien = rs.getString("nama_pasien");
                 Date tanggalJanji = rs.getDate("tanggal_janji");
-                Time waktuJanji = rs.getTime("waktu_janji");
+                Time waktuJanji = rs.getTime("waktu_janji"); // Menggunakan Time untuk waktu
                 String status = rs.getString("status");
 
                 tableModel.addRow(new Object[]{
-                        idJanji != null ? idJanji : "",
-                        idPasien != null ? idPasien : "",
-                        namaPasien != null ? namaPasien : "",
-                        tanggalJanji,
-                        waktuJanji,
-                        status != null ? status : ""
+                    idJanji != null ? idJanji : "", // Tangani null
+                    idPasien != null ? idPasien : "",
+                    namaPasien != null ? namaPasien : "",
+                    tanggalJanji, // Date dan Time bisa langsung ditambahkan, JTable akan memanggil toString()
+                    waktuJanji,
+                    status != null ? status : ""
                 });
             }
         } catch (SQLException ex) {
@@ -158,7 +162,6 @@ public class FormBuatJanji extends JPanel {
         }
     }
 
-    // Save new appointment
     private void simpanJanjiBaru() {
         String idPasien = tfIdPasien.getText().trim();
         Date tanggalJanjiDate = (Date) dateSpinner.getValue();
@@ -195,7 +198,6 @@ public class FormBuatJanji extends JPanel {
         }
     }
 
-    // Setup auto-suggest for ID Pasien
     private void setupIdPasienAutoSuggest() {
         suggestionPopup = new JPopupMenu();
         tfIdPasien.getDocument().addDocumentListener(new DocumentListener() {
@@ -222,7 +224,6 @@ public class FormBuatJanji extends JPanel {
         });
     }
 
-    // Show suggestions for ID Pasien
     private void showSuggestions() {
         suggestionPopup.setVisible(false);
         suggestionPopup.removeAll();
