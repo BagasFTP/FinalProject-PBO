@@ -11,44 +11,17 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class FormCekTanggal extends JPanel {
-    private final JSpinner spinnerTanggal;
-    private final JTable tableJanjiTemu;
-    private final JTable tableKunjungan;
-    private final DefaultTableModel modelJanjiTemu;
-    private final DefaultTableModel modelKunjungan;
+    private JSpinner spinnerTanggal;
+    private JTable tableJanjiTemu;
+    private JTable tableKunjungan;
+    private DefaultTableModel modelJanjiTemu;
+    private DefaultTableModel modelKunjungan;
 
     public FormCekTanggal() {
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(10, 10)); 
         setBackground(Color.WHITE);
         setBorder(new EmptyBorder(10, 10, 10, 10));
-
         // Header
-        add(createHeaderPanel(), BorderLayout.NORTH);
-
-        // Konten Tengah
-        JPanel isiPanel = new JPanel();
-        isiPanel.setLayout(new BoxLayout(isiPanel, BoxLayout.Y_AXIS));
-        isiPanel.setBackground(Color.WHITE);
-
-        JPanel inputPanel = createInputPanel();
-        isiPanel.add(inputPanel);
-
-        JScrollPane scrollJanji = createTableScrollPane(modelJanjiTemu = new DefaultTableModel(
-                new String[]{"ID Janji", "ID Pasien", "Nama Pasien", "Waktu", "Status"}, 0),
-                tableJanjiTemu = new JTable(modelJanjiTemu), "Janji Temu Hari Ini");
-        isiPanel.add(scrollJanji);
-
-        JScrollPane scrollKunjungan = createTableScrollPane(modelKunjungan = new DefaultTableModel(
-                new String[]{"ID Pasien", "Nama Pasien", "Jenis Kunjungan"}, 0),
-                tableKunjungan = new JTable(modelKunjungan), "Kunjungan Pasien Hari Ini");
-        isiPanel.add(scrollKunjungan);
-
-        JScrollPane scrollIsi = new JScrollPane(isiPanel);
-        scrollIsi.setBorder(null);
-        add(scrollIsi, BorderLayout.CENTER);
-    }
-
-    private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(52, 152, 219));
         headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
@@ -56,10 +29,14 @@ public class FormCekTanggal extends JPanel {
         lblJudul.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblJudul.setForeground(Color.WHITE);
         headerPanel.add(lblJudul, BorderLayout.WEST);
-        return headerPanel;
-    }
+        add(headerPanel, BorderLayout.NORTH); // Add to this JPanel
 
-    private JPanel createInputPanel() {
+        // Panel isi (tengah)
+        JPanel isiPanel = new JPanel();
+        isiPanel.setLayout(new BoxLayout(isiPanel, BoxLayout.Y_AXIS));
+        isiPanel.setBackground(Color.WHITE);
+
+        // Input panel
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         inputPanel.setBackground(Color.WHITE);
 
@@ -75,32 +52,101 @@ public class FormCekTanggal extends JPanel {
         btnCari.setForeground(Color.WHITE);
         btnCari.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnCari.setFocusPainted(false);
-        btnCari.addActionListener(e -> cariDataTanggal());
 
         inputPanel.add(lTgl);
         inputPanel.add(spinnerTanggal);
         inputPanel.add(btnCari);
 
-        return inputPanel;
-    }
+        isiPanel.add(inputPanel);
 
-    private JScrollPane createTableScrollPane(DefaultTableModel model, JTable table, String title) {
-        JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(BorderFactory.createTitledBorder(title));
-        scroll.setPreferredSize(new Dimension(800, 200));
-        return scroll;
+        // Tabel Janji Temu
+        modelJanjiTemu = new DefaultTableModel(
+                new String[] { "ID Janji", "ID Pasien", "Nama Pasien", "Waktu", "Status" }, 0);
+        tableJanjiTemu = new JTable(modelJanjiTemu);
+        JScrollPane scrollJanji = new JScrollPane(tableJanjiTemu);
+        scrollJanji.setBorder(BorderFactory.createTitledBorder("Janji Temu Hari Ini"));
+        scrollJanji.setPreferredSize(new Dimension(800, 200));
+        isiPanel.add(scrollJanji);
+
+        // Tabel Kunjungan
+        modelKunjungan = new DefaultTableModel(new String[] { "ID Pasien", "Nama Pasien", "Jenis Kunjungan" }, 0);
+        tableKunjungan = new JTable(modelKunjungan);
+        JScrollPane scrollKunjungan = new JScrollPane(tableKunjungan);
+        scrollKunjungan.setBorder(BorderFactory.createTitledBorder("Kunjungan Pasien Hari Ini"));
+        scrollKunjungan.setPreferredSize(new Dimension(800, 200));
+        isiPanel.add(scrollKunjungan);
+
+        // Scroll untuk isiPanel
+        JScrollPane scrollIsi = new JScrollPane(isiPanel);
+        scrollIsi.setBorder(null); // opsional
+        add(scrollIsi, BorderLayout.CENTER); // Add to this JPanel
+
+        // Event
+        btnCari.addActionListener(e -> cariDataTanggal());
+
+        // setVisible(true); // No longer needed for a JPanel
     }
 
     private void cariDataTanggal() {
         Date selectedDate = (Date) spinnerTanggal.getValue();
-        String tanggalCari = new SimpleDateFormat("yyyy-MM-dd").format(selectedDate);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String tanggalCari = sdf.format(selectedDate);
 
+        // Kosongkan tabel sebelum menambahkan data baru
         modelJanjiTemu.setRowCount(0);
         modelKunjungan.setRowCount(0);
+
         boolean adaData = false;
 
-        adaData |= loadJanjiTemu(tanggalCari);
-        adaData |= loadKunjungan(tanggalCari);
+        // Query Janji Temu
+        try (Connection conn = koneksi.getKoneksi();
+                PreparedStatement psJanji = conn.prepareStatement(
+                        "SELECT jt.id_janji_temu, p.id_pasien, p.nama_pasien, jt.waktu_janji, jt.status " +
+                                "FROM janji_temu jt " +
+                                "JOIN pasien p ON jt.id_pasien = p.id_pasien " +
+                                "WHERE jt.tanggal_janji = ?")) {
+
+            psJanji.setString(1, tanggalCari);
+            ResultSet rsJanji = psJanji.executeQuery();
+
+            while (rsJanji.next()) {
+                adaData = true;
+                modelJanjiTemu.addRow(new Object[] {
+                        rsJanji.getInt("id_janji_temu"),
+                        rsJanji.getString("id_pasien"),
+                        rsJanji.getString("nama_pasien"),
+                        rsJanji.getTime("waktu_janji").toString(),
+                        rsJanji.getString("status")
+                });
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error fetching janji temu: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        // Query Kunjungan Pasien
+        try (Connection conn = koneksi.getKoneksi();
+                PreparedStatement psKunjungan = conn.prepareStatement(
+                        "SELECT sk.id_pasien, p.nama_pasien, sk.jenis_kunjungan " +
+                                "FROM statistik_kunjungan sk " +
+                                "JOIN pasien p ON sk.id_pasien = p.id_pasien " +
+                                "WHERE sk.tanggal_kunjungan = ?")) {
+
+            psKunjungan.setString(1, tanggalCari);
+            ResultSet rsKunjungan = psKunjungan.executeQuery();
+
+            while (rsKunjungan.next()) {
+                adaData = true;
+                modelKunjungan.addRow(new Object[] {
+                        rsKunjungan.getString("id_pasien"),
+                        rsKunjungan.getString("nama_pasien"),
+                        rsKunjungan.getString("jenis_kunjungan")
+                });
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error fetching kunjungan pasien: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         if (!adaData) {
             JOptionPane.showMessageDialog(this,
@@ -109,61 +155,18 @@ public class FormCekTanggal extends JPanel {
         }
     }
 
-    private boolean loadJanjiTemu(String tanggalCari) {
-        String query = "SELECT jt.id_janji_temu, p.id_pasien, p.nama_pasien, jt.waktu_janji, jt.status " +
-                "FROM janji_temu jt " +
-                "JOIN pasien p ON jt.id_pasien = p.id_pasien " +
-                "WHERE jt.tanggal_janji = ?";
-
-        try (Connection conn = koneksi.getKoneksi();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-
-            ps.setString(1, tanggalCari);
-            ResultSet rs = ps.executeQuery();
-            boolean found = false;
-            while (rs.next()) {
-                modelJanjiTemu.addRow(new Object[]{
-                        rs.getInt("id_janji_temu"),
-                        rs.getString("id_pasien"),
-                        rs.getString("nama_pasien"),
-                        rs.getTime("waktu_janji"),
-                        rs.getString("status")
-                });
-                found = true;
-            }
-            return found;
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error fetching janji temu: " + ex.getMessage(),
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-    }
-
-    private boolean loadKunjungan(String tanggalCari) {
-        String query = "SELECT sk.id_pasien, p.nama_pasien, sk.jenis_kunjungan " +
-                "FROM statistik_kunjungan sk " +
-                "JOIN pasien p ON sk.id_pasien = p.id_pasien " +
-                "WHERE sk.tanggal_kunjungan = ?";
-
-        try (Connection conn = koneksi.getKoneksi();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-
-            ps.setString(1, tanggalCari);
-            ResultSet rs = ps.executeQuery();
-            boolean found = false;
-            while (rs.next()) {
-                modelKunjungan.addRow(new Object[]{
-                        rs.getString("id_pasien"),
-                        rs.getString("nama_pasien"),
-                        rs.getString("jenis_kunjungan")
-                });
-                found = true;
-            }
-            return found;
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error fetching kunjungan pasien: " + ex.getMessage(),
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-    }
+    // The main method is no longer necessary as this will be a panel
+    // and will be instantiated by MainApp.
+    // public static void main(String[] args) {
+    //     try {
+    //         Class.forName("com.mysql.cj.jdbc.Driver");
+    //     } catch (ClassNotFoundException e) {
+    //         JOptionPane.showMessageDialog(null,
+    //                 "Driver MySQL tidak ditemukan. Pastikan Anda telah menambahkan library JDBC MySQL.",
+    //                 "Error Driver", JOptionPane.ERROR_MESSAGE);
+    //         return;
+    //     }
+    //
+    //     SwingUtilities.invokeLater(FormCekTanggal::new);
+    // }
 }
