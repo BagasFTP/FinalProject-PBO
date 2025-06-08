@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8db7da76-03ab-43b0-94fa-e7267910b61b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/view/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/MainApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/view/FormAntrian.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/FormAntrian.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,5 +44,26 @@
       <updated>1748210681840</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="58d6e463-0596-45ae-ab02-d4d2c90de15c" value="TOOL_WINDOW" />
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="58d6e463-0596-45ae-ab02-d4d2c90de15c">
+          <value>
+            <State />
+          </value>
+        </entry>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
