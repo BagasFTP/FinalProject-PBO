@@ -1,0 +1,18 @@
+{
+    "java.project.sourcePaths": [
+        "src",
+        "."
+    ],
+    "java.project.outputPath": "bin",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "itext-2.1.7.jar",
+        "mysql-connector-j-9.3.0.jar"
+    ],
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.saveActions.organizeImports": true,
+    "java.project.encoding": "UTF-8",
+    "files.encoding": "utf8",
+    "java.debug.settings.hotCodeReplace": "auto"
+}
