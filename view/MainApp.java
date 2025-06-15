@@ -1,4 +1,4 @@
-    package view;
+package view;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,17 +60,6 @@ public class MainApp extends JFrame {
             btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
             btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-            // Hover effect
-            btn.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    btn.setBackground(new Color(65, 65, 100));
-                }
-
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    btn.setBackground(new Color(45, 45, 65));
-                }
-            });
-
             final int index = i;
             btn.addActionListener(e -> bukaForm(index));
 
@@ -101,39 +90,39 @@ public class MainApp extends JFrame {
 
             switch (index) {
                 case 0 -> {
-                    PanelPasien panelPasien = new PanelPasien(); 
+                    PanelPasien panelPasien = new PanelPasien();
                     panelTengah.add(panelPasien, BorderLayout.CENTER);
                 }
                 case 1 -> {
-                    FormAntrian formAntrian = new FormAntrian(); 
+                    FormAntrian formAntrian = new FormAntrian();
                     panelTengah.add(formAntrian, BorderLayout.CENTER);
                 }
                 case 2 -> {
-                    FormBuatJanji formBuatJanji = new FormBuatJanji(); 
+                    FormBuatJanji formBuatJanji = new FormBuatJanji();
                     panelTengah.add(formBuatJanji, BorderLayout.CENTER);
                 }
                 case 3 -> {
-                    FormEditJanji formEditJanji = new FormEditJanji(); 
+                    FormEditJanji formEditJanji = new FormEditJanji();
                     panelTengah.add(formEditJanji, BorderLayout.CENTER);
                 }
                 case 4 -> {
-                    FormReminder formReminder = new FormReminder(); 
+                    FormReminder formReminder = new FormReminder();
                     panelTengah.add(formReminder, BorderLayout.CENTER);
                 }
                 case 5 -> {
-                    Statistik statistik = new Statistik(); 
+                    Statistik statistik = new Statistik();
                     panelTengah.add(statistik, BorderLayout.CENTER);
                 }
                 case 6 -> {
-                    FormExportLaporan formExportLaporan = new FormExportLaporan(); 
+                    FormExportLaporan formExportLaporan = new FormExportLaporan();
                     panelTengah.add(formExportLaporan, BorderLayout.CENTER);
                 }
                 case 7 -> {
-                    FormCekTanggal formCekTanggal = new FormCekTanggal(); 
+                    FormCekTanggal formCekTanggal = new FormCekTanggal();
                     panelTengah.add(formCekTanggal, BorderLayout.CENTER);
                 }
                 case 8 -> {
-                    FormRekamMedis formRekamMedis = new FormRekamMedis(); 
+                    FormRekamMedis formRekamMedis = new FormRekamMedis();
                     panelTengah.add(formRekamMedis, BorderLayout.CENTER);
                 }
                 default -> showMessage("Fitur belum tersedia.");
