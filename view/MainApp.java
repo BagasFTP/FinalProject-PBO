@@ -143,6 +143,9 @@ public class MainApp extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(MainApp::new);
+        SwingUtilities.invokeLater(() -> {
+            FormLogin form = new FormLogin();
+            form.setVisible(true);
+        });
     }
 }
